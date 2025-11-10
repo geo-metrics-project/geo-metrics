@@ -7,7 +7,7 @@
 ## Features
 
 - Accepts a brand name and a list of keywords
-- Queries GPT (`gpt-4o-mini`) for each keyword
+- Queries multiple popular AIs for each keyword
 - Counts brand mentions and calculates normalized mention ratio
 - Returns results in structured JSON
 - Fully containerized with Docker for easy deployment
@@ -19,7 +19,7 @@
 
 - [Docker](https://docs.docker.com/get-docker/) installed
 - [Docker Compose](https://docs.docker.com/compose/install/)
-- OpenAI API key
+- OpenAI, Google Gemini and Groq API key
 
 ---
 
@@ -36,6 +36,8 @@ cd GEO\ Metrics
 
 ```bash
 OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxx
+GOOGLE_API_KEY=xxxxxxxxxxxxxxxxxxxxxxx
+GROQ_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 3. Build and start the Docker Compose services:
