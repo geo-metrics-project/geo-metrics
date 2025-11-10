@@ -45,3 +45,5 @@ docker-compose up --build
 ```
 
 The API will be available at http://localhost:8000.
+
+Get API documentation at http://localhost:8000/docs#/.
