@@ -6,10 +6,10 @@ GEO Metrics generates analytical reports that evaluate how well content is optim
 ## Architecture
 
 ### Core Services
-- **api-gateway** (port 3000): Unified entry point, request routing, and proxy to backend services
-- **report-service** (port 8080): Aggregates LLM outputs, computes GEO scores, stores report metadata
-- **llm-service** (port 8081): Normalized interface to multiple LLM providers (OpenAI, Groq)
-- **db** (port 5432): PostgreSQL database for persistence
+- **api-gateway** (port 3000): Unified entry point, request orchestration
+- **report-service** (port 8080): Aggregates LLM outputs, computes GEO scores, stores reports
+- **llm-service** (port 8081): Interface to multiple LLM providers (OpenAI, Groq)
+- **db** (port 5432): PostgreSQL database for report persistence
 
 ### Service Communication
 ```
@@ -37,13 +37,6 @@ Client → API Gateway (3000)
 minikube start
 ```
 
-Verify Minikube is running:
-```bash
-minikube status
-```
-
----
-
 ### Step 2: Configure Docker for Minikube
 
 Point your Docker CLI to Minikube's Docker daemon so images are built directly in the cluster:
@@ -65,10 +58,10 @@ Create secrets for sensitive data before deploying:
 kubectl create secret generic db-secret \
   --from-literal=DB_PASSWORD=your_secure_password
 
-# LLM API keys (replace with your actual keys)
+# LLM API keys
 kubectl create secret generic llm-secrets \
-  --from-literal=OPENAI_API_KEY=sk-your-openai-key \
-  --from-literal=GROQ_API_KEY=gsk_your-groq-key
+  --from-literal=OPENAI_API_KEY=your-openai-key \
+  --from-literal=GROQ_API_KEY=your-groq-key
 ```
 
 Verify secrets were created:
@@ -147,68 +140,48 @@ kubectl logs -f deployment/db
 
 ---
 
-### Step 7: Access the API Gateway
+## API Endpoints
 
-#### Option A: Using Minikube Service (Recommended)
-
+### Health Check
 ```bash
-minikube service api-gateway --url
+curl $API_URL/api/health
 ```
 
-This will output a URL like `http://192.168.49.2:30000`. Use this URL to access the API.
-
-#### Option B: Port Forwarding
-
+### Full GEO Analysis
 ```bash
-kubectl port-forward service/api-gateway 3000:3000
-```
-
-Then access via: `http://localhost:3000`
-
----
-
-### Step 8: Test the API
-
-Test the health endpoint:
-
-```bash
-# Replace with your actual URL from Step 7
-curl http://localhost:3000/api/health
-```
-
-Expected response:
-```json
-{
-  "status": "healthy",
-  "timestamp": "2025-11-19T..."
-}
-```
-
-List available LLM providers:
-```bash
-curl http://localhost:3000/api/llm/providers
-```
-
-Query an LLM provider:
-```bash
-curl -X POST http://localhost:3000/api/llm/query \
+curl -X POST $API_URL/api/analyze \
   -H "Content-Type: application/json" \
   -d '{
-    "provider": "openai",
-    "prompt": "What is GEO?"
+    "brand_name": "Tesla",
+    "models": ["openai:gpt-3.5-turbo", "groq:llama-3.1-8b-instant"],
+    "keywords": ["electric", "innovation", "sustainable", "autopilot"],
+    "prompt_template": "What do you know about {brand_name}? Describe their main products and innovations."
   }'
 ```
 
-Create a report:
+### List All Reports
 ```bash
-curl -X POST http://localhost:3000/api/reports/ \
+curl $API_URL/api/reports
+```
+
+### Get Specific Report
+```bash
+curl $API_URL/api/reports/1
+```
+
+### Get Report Score
+```bash
+curl $API_URL/api/reports/1/score
+```
+
+### Query LLM Directly
+```bash
+curl -X POST $API_URL/api/llm/query \
   -H "Content-Type: application/json" \
   -d '{
-    "content": "Sample content for GEO analysis",
-    "llm_responses": [
-      {"provider": "openai", "score": 0.85, "response": "..."},
-      {"provider": "groq", "score": 0.78, "response": "..."}
-    ]
+    "provider": "openai",
+    "model": "gpt-3.5-turbo",
+    "prompt": "What is Generative Engine Optimization?"
   }'
 ```
 
@@ -218,15 +191,15 @@ curl -X POST http://localhost:3000/api/reports/ \
 
 ### API Gateway
 - `PORT`: Server port (default: 3000)
-- `LLM_SERVICE_URL`: LLM service endpoint
-- `REPORT_SERVICE_URL`: Report service endpoint
+- `LLM_SERVICE_URL`: LLM service endpoint (default: http://llm-service:8081)
+- `REPORT_SERVICE_URL`: Report service endpoint (default: http://report-service:8080)
 
 ### Report Service
 - `PORT`: Server port (default: 8080)
-- `DB_HOST`: Database host
+- `DB_HOST`: Database host (default: db)
 - `DB_PORT`: Database port (default: 5432)
-- `DB_NAME`: Database name
-- `DB_USER`: Database user
+- `DB_NAME`: Database name (default: geo_metrics)
+- `DB_USER`: Database user (default: postgres)
 - `DB_PASSWORD`: Database password (from secret)
 
 ### LLM Service
@@ -235,6 +208,17 @@ curl -X POST http://localhost:3000/api/reports/ \
 - `GROQ_API_KEY`: Groq API key (from secret)
 
 ### Database
-- `POSTGRES_DB`: Database name
-- `POSTGRES_USER`: Database user
+- `POSTGRES_DB`: Database name (default: geo_metrics)
+- `POSTGRES_USER`: Database user (default: postgres)
 - `POSTGRES_PASSWORD`: Database password (from secret)
+
+---
+
+## Cleanup
+
+```bash
+kubectl delete -f k8s/
+kubectl delete secret db-secret llm-secrets
+minikube stop
+minikube delete
+```
