@@ -21,6 +21,7 @@ DEFAULT_MODEL = "meta-llama/Llama-3.1-8B-Instruct"
 class QueryRequest(BaseModel):
     prompt: str
     model: Optional[str] = None
+    region: Optional[str] = None
 
 class QueryResponse(BaseModel):
     model: str
@@ -59,7 +60,7 @@ async def query_provider(request: QueryRequest):
     
     try:
         client = HuggingFaceClient(api_key)
-        result = client.query(request.prompt, model=model)
+        result = client.query(request.prompt, model=model, region=request.region)
         return result
     except Exception as e:
         logger.error(f"Error querying HuggingFace: {str(e)}")

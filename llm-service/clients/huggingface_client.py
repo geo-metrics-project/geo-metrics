@@ -1,21 +1,32 @@
 from huggingface_hub import InferenceClient
-from typing import Dict
+from typing import Dict, Optional
 
 class HuggingFaceClient:
     def __init__(self, api_key: str):
         self.client = InferenceClient(token=api_key, timeout=60)
 
-    def query(self, prompt: str, model: str = "meta-llama/Meta-Llama-3-8B-Instruct") -> Dict:
+    def query(self, prompt: str, model: str = "meta-llama/Meta-Llama-3-8B-Instruct", region: Optional[str] = None) -> Dict:
         try:
+            # Build messages list
+            messages = []
+            
+            # Add system message with region context if provided
+            if region:
+                messages.append({
+                    "role": "system",
+                    "content": f"You are responding from the perspective of someone in {region}. Consider regional context, brands, and preferences relevant to {region}."
+                })
+            
+            # Add user prompt
+            messages.append({
+                "role": "user",
+                "content": prompt
+            })
+            
             # Use chat completions API for conversational models
             completion = self.client.chat.completions.create(
                 model=model,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
+                messages=messages,
                 max_tokens=500,
                 temperature=0.7
             )

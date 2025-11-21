@@ -23,14 +23,17 @@ if [ "$1" == "all" ] || [ -z "$1" ]; then
     docker build -t api-gateway:latest ./api-gateway
     docker build -t report-service:latest ./report-service
     docker build -t llm-service:latest ./llm-service
+    docker build -t frontend:latest ./frontend
     
     kubectl rollout restart deployment/api-gateway
     kubectl rollout restart deployment/report-service
     kubectl rollout restart deployment/llm-service
+    kubectl rollout restart deployment/frontend
     
     kubectl wait --for=condition=ready pod -l app=api-gateway --timeout=60s
     kubectl wait --for=condition=ready pod -l app=report-service --timeout=60s
     kubectl wait --for=condition=ready pod -l app=llm-service --timeout=60s
+    kubectl wait --for=condition=ready pod -l app=frontend --timeout=120s
     
 elif [ "$1" == "api-gateway" ] || [ "$1" == "gateway" ]; then
     echo -e "${YELLOW}Rebuilding api-gateway...${NC}"
@@ -50,8 +53,14 @@ elif [ "$1" == "llm-service" ] || [ "$1" == "llm" ]; then
     kubectl rollout restart deployment/llm-service
     kubectl wait --for=condition=ready pod -l app=llm-service --timeout=60s
     
+elif [ "$1" == "frontend" ] || [ "$1" == "web" ]; then
+    echo -e "${YELLOW}Rebuilding frontend...${NC}"
+    docker build -t frontend:latest ./frontend
+    kubectl rollout restart deployment/frontend
+    kubectl wait --for=condition=ready pod -l app=frontend --timeout=120s
+    
 else
-    echo "Usage: ./rebuild.sh [all|api-gateway|report-service|llm-service]"
+    echo "Usage: ./rebuild.sh [all|api-gateway|report-service|llm-service|frontend]"
     exit 1
 fi
 
@@ -61,4 +70,6 @@ echo -e "${GREEN}✅ Rebuild complete!${NC}"
 # Get API URL
 MINIKUBE_IP=$(minikube ip)
 API_URL="http://$MINIKUBE_IP:30000"
+FRONTEND_URL="http://$MINIKUBE_IP:30002"
 echo -e "${GREEN}API URL:${NC} $API_URL"
+echo -e "${GREEN}Frontend URL:${NC} $FRONTEND_URL"

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List, Dict
+from typing import List
 from pydantic import BaseModel, Field
 from database import get_db
 from services.report_generator import ReportGenerator
@@ -20,28 +20,6 @@ class CreateReportRequest(BaseModel):
     brand_name: str = Field(..., description="Brand name to analyze")
     keywords: List[str] = Field(..., description="Keywords to search for in responses")
     llm_responses: List[LLMResponse] = Field(..., description="LLM responses to analyze")
-
-class KeywordMatch(BaseModel):
-    keyword: str
-    count: int
-    found: bool
-
-class ProviderAnalysis(BaseModel):
-    model: str
-    response: str
-    keyword_matches: List[KeywordMatch]
-    visibility_score: float
-
-class ReportResponse(BaseModel):
-    id: int
-    brand_name: str
-    keywords: List[str]
-    overall_score: float
-    provider_analyses: List[ProviderAnalysis]
-    created_at: str
-
-    class Config:
-        from_attributes = True
 
 @router.post("", status_code=201)
 async def create_report(request: CreateReportRequest, db: Session = Depends(get_db)):

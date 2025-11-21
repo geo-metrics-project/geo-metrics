@@ -6,13 +6,17 @@ GEO Metrics generates analytical reports that evaluate how well content is optim
 ## Architecture
 
 ### Core Services
-- **api-gateway** (port 3000): Unified entry point, request orchestration
+- **frontend** (port 3001, NodePort 30002): Next.js web application
+- **api-gateway** (port 3000, NodePort 30000): Unified entry point, request orchestration
 - **report-service** (port 8080): Aggregates LLM outputs, computes GEO scores, stores reports
 - **llm-service** (port 8081): Interface to HuggingFace models
 - **db** (port 5432): PostgreSQL database for report persistence
+- **adminer** (port 8080, NodePort 30001): Database management interface
 
 ### Service Communication
 ```
+User → Frontend (3001)
+         ↓
 Client → API Gateway (3000)
            ↓
            ├→ Report Service (8080) → Database (5432)
@@ -106,6 +110,7 @@ curl $API_URL/api/reports/1
 ./rebuild.sh api-gateway         # Specific service
 ./rebuild.sh llm-service
 ./rebuild.sh report-service
+./rebuild.sh frontend
 ```
 
 ---
