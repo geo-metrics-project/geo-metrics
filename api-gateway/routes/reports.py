@@ -47,3 +47,9 @@ async def get_report_llm_responses(report_id: int, request: Request):
     """Get report LLM responses"""
     target_url = f"{REPORT_SERVICE_URL}/api/reports/{report_id}/llm-responses"
     return await proxy_request(request, target_url)
+
+@router.post("/analyze")
+async def analyze_brand(request: Request):
+    """Analyze brand visibility across LLM providers (proxied to report-service)"""
+    target_url = f"{REPORT_SERVICE_URL}/api/analyze"
+    return await proxy_request(request, target_url)

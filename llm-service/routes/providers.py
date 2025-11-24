@@ -39,11 +39,6 @@ async def list_models():
 async def query_provider(request: QueryRequest):
     """Query an LLM model with a prompt"""
     
-    # Get API key
-    api_key = os.getenv("HUGGINGFACE_API_KEY")
-    if not api_key:
-        raise HTTPException(status_code=400, detail="HuggingFace API key not configured")
-    
     # Use default model if not specified
     model = request.model or DEFAULT_MODEL
     
@@ -59,8 +54,8 @@ async def query_provider(request: QueryRequest):
         )
     
     try:
-        client = HuggingFaceClient(api_key)
-        result = client.query(request.prompt, model=model, region=request.region)
+        client = HuggingFaceClient()
+        result = await client.query_model(model, request.prompt, request.region)
         return result
     except Exception as e:
         logger.error(f"Error querying HuggingFace: {str(e)}")
