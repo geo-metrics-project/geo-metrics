@@ -1,46 +1,47 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel, Field
 from database import get_db
 from services.report_generator import ReportGenerator
-from models.report_model import Report
+from models.report_model import Report, LLMResponse
 import logging
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
-class LLMResponse(BaseModel):
+class LLMResponseData(BaseModel):
     model: str = Field(..., description="Model used for the query")
     keyword: str = Field(..., description="Keyword that was queried")
+    language_code: str = Field(..., description="Language code used")
+    region: str = Field(..., description="Region context used")
+    prompt_text: str = Field(..., description="Full prompt text sent to the model")
     response: str = Field(..., description="Response from the LLM")
 
 class CreateReportRequest(BaseModel):
+    user_id: Optional[int] = Field(default=None, description="Optional user ID")
     brand_name: str = Field(..., description="Brand name to analyze")
-    keywords: List[str] = Field(..., description="Keywords to search for in responses")
-    llm_responses: List[LLMResponse] = Field(..., description="LLM responses to analyze")
+    llm_responses: List[LLMResponseData] = Field(..., description="LLM responses to store")
 
 @router.post("", status_code=201)
 async def create_report(request: CreateReportRequest, db: Session = Depends(get_db)):
     try:
         logger.info(f"Creating report for brand: {request.brand_name}")
-        logger.info(f"Keywords: {request.keywords}")
         logger.info(f"LLM responses count: {len(request.llm_responses)}")
         
-        # Convert Pydantic models to dicts using model_dump()
+        # Convert Pydantic models to dicts
         llm_responses = [resp.model_dump() for resp in request.llm_responses]
         
         generator = ReportGenerator(db)
         report = generator.generate_report(
+            user_id=request.user_id,
             brand_name=request.brand_name,
-            keywords=request.keywords,
             llm_responses=llm_responses
         )
         
         logger.info(f"Successfully created report {report.id}")
         
-        # Convert to dict to ensure datetime is serialized
         return report.to_dict()
         
     except Exception as e:
@@ -50,7 +51,6 @@ async def create_report(request: CreateReportRequest, db: Session = Depends(get_
 @router.get("")
 async def list_reports(db: Session = Depends(get_db)):
     reports = db.query(Report).all()
-    # Convert all reports to dict
     return [report.to_dict() for report in reports]
 
 @router.get("/{report_id}")
@@ -58,7 +58,6 @@ async def get_report(report_id: int, db: Session = Depends(get_db)):
     report = db.query(Report).filter(Report.id == report_id).first()
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
-    # Convert to dict
     return report.to_dict()
 
 @router.delete("/{report_id}", status_code=204)
@@ -69,3 +68,16 @@ async def delete_report(report_id: int, db: Session = Depends(get_db)):
     db.delete(report)
     db.commit()
     return None
+
+@router.get("/{report_id}/llm-responses")
+async def get_report_llm_responses(report_id: int, db: Session = Depends(get_db)):
+    """Get all LLM responses for a report"""
+    report = db.query(Report).filter(Report.id == report_id).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+    
+    llm_responses = db.query(LLMResponse).filter(
+        LLMResponse.report_id == report_id
+    ).all()
+    
+    return [resp.to_dict() for resp in llm_responses]

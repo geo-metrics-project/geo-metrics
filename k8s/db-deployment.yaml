@@ -15,8 +15,8 @@ spec:
         app: db
     spec:
       containers:
-      - name: db
-        image: postgres:13
+      - name: postgres
+        image: postgres:15-alpine
         ports:
         - containerPort: 5432
         env:
@@ -29,18 +29,18 @@ spec:
             secretKeyRef:
               name: db-secret
               key: DB_PASSWORD
+        volumeMounts:
+        - name: init-script
+          mountPath: /docker-entrypoint-initdb.d
         resources:
           requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
             memory: "256Mi"
-            cpu: "200m"
-        volumeMounts:
-        - name: db-init
-          mountPath: /docker-entrypoint-initdb.d
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
       volumes:
-      - name: db-init
+      - name: init-script
         configMap:
           name: db-init-config
 ---
@@ -50,29 +50,32 @@ metadata:
   name: db-init-config
 data:
   init.sql: |
-    CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        password_hash VARCHAR(255) NOT NULL,
-        name VARCHAR(255),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        last_login TIMESTAMP
-    );
-
+    -- Reports table (no users dependency)
     CREATE TABLE IF NOT EXISTS reports (
         id SERIAL PRIMARY KEY,
         brand_name VARCHAR(255) NOT NULL,
-        keywords JSONB NOT NULL,
-        overall_score FLOAT NOT NULL,
-        provider_analyses JSONB NOT NULL,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        user_id INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Store raw LLM responses for each unique combination
+    CREATE TABLE IF NOT EXISTS llm_responses (
+        id SERIAL PRIMARY KEY,
+        report_id INTEGER NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
+        prompt_template TEXT NOT NULL,
+        region VARCHAR(100) NOT NULL,
+        language_code VARCHAR(10) NOT NULL,
+        keyword VARCHAR(255) NOT NULL,
+        model VARCHAR(255) NOT NULL,
+        prompt_text TEXT NOT NULL,
+        response TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
-    CREATE INDEX idx_brand_name ON reports(brand_name);
-    CREATE INDEX idx_created_at ON reports(created_at);
-    CREATE INDEX idx_reports_user_id ON reports(user_id);
-    CREATE INDEX idx_users_email ON users(email);
+    CREATE INDEX IF NOT EXISTS idx_llm_responses_report ON llm_responses(report_id);
+    CREATE INDEX IF NOT EXISTS idx_llm_responses_language ON llm_responses(language_code);
+    CREATE INDEX IF NOT EXISTS idx_llm_responses_keyword ON llm_responses(keyword);
 ---
 apiVersion: apps/v1
 kind: Deployment

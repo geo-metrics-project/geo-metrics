@@ -2,7 +2,7 @@ import os
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from routes import health, reports, llm, analyze
+from routes import health, reports, llm
 
 # Configure logging
 logging.basicConfig(
@@ -24,7 +24,6 @@ app = FastAPI(
 )
 
 app.include_router(health.router, prefix="/api")
-app.include_router(analyze.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
 app.include_router(llm.router, prefix="/api")
 
