@@ -1,9 +1,10 @@
 import os
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Depends
 from typing import List
 import httpx
 from pydantic import BaseModel, Field
 from .proxy import proxy_request
+from .auth_utils import get_user_id
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
@@ -58,11 +59,12 @@ async def get_report_llm_responses(report_id: int, request: Request):
     return await proxy_request(request, target_url)
 
 @router.post("/analyze", response_model=AnalyzeResponse)
-async def analyze_brand(request: AnalyzeRequest):
+async def analyze_brand(request: AnalyzeRequest, user_id: int = Depends(get_user_id)):
     """Analyze brand visibility across LLM providers (proxied to report-service)"""
     import httpx
     target_url = f"{REPORT_SERVICE_URL}/api/analyze"
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(target_url, json=request.dict())
+    headers = {"X-User-ID": str(user_id)}
+    async with httpx.AsyncClient(timeout=60) as client:
+        resp = await client.post(target_url, json=request.model_dump(), headers=headers)
         resp.raise_for_status()
         return resp.json()

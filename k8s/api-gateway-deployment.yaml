@@ -27,6 +27,11 @@ spec:
           value: "http://report-service:8080"
         - name: LLM_SERVICE_URL
           value: "http://llm-service:8081"
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: JWT_SECRET_KEY
         resources:
           requests:
             memory: "128Mi"
