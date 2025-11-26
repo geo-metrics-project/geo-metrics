@@ -2,7 +2,7 @@ import os
 import logging
 import httpx
 import asyncio
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Header, Depends
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 from typing import List, Optional
@@ -30,7 +30,6 @@ class AnalyzeRequest(BaseModel):
         default=["What do you know about {keyword}? What brands come to your mind when you think of {keyword}?"],
         description="List of prompt templates with {keyword} placeholder"
     )
-    user_id: Optional[int] = None
 
 class AnalyzeResponse(BaseModel):
     report_id: int
@@ -78,7 +77,11 @@ async def query_llm(client: httpx.AsyncClient, model: str, prompt: str, region: 
         return {"success": False, "model": model, "prompt_text": prompt}
 
 @router.post("", response_model=AnalyzeResponse)
-async def analyze_brand(request: AnalyzeRequest, db: Session = Depends(get_db)):
+async def analyze_brand(
+    request: AnalyzeRequest,
+    db: Session = Depends(get_db),
+    x_user_id: int = Header(...)
+):
     """Analyze brand visibility across LLM providers"""
     logger.info(
         f"Analyzing {request.brand_name}: "
@@ -133,7 +136,7 @@ async def analyze_brand(request: AnalyzeRequest, db: Session = Depends(get_db)):
     generator = ReportGenerator(db)
     report = generator.generate_report(
         brand_name=request.brand_name,
-        user_id=request.user_id,
+        user_id=x_user_id,
         llm_responses=llm_responses
     )
     
@@ -141,7 +144,7 @@ async def analyze_brand(request: AnalyzeRequest, db: Session = Depends(get_db)):
     failed = len(results) - successful
 
     return AnalyzeResponse(
-        report_id=report.id,
+        report_id=report.id, # type: ignore
         brand_name=request.brand_name,
         timestamp=datetime.now(timezone.utc).isoformat(),
         total_queries=len(results),

@@ -19,14 +19,14 @@ class LoginRequest(BaseModel):
 @router.post("/login")
 def login(request: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter_by(username=request.username).first()
-    if not user or not bcrypt.verify(request.password, user.password_hash):
+    if not user or not bcrypt.verify(request.password, user.password_hash): # type: ignore
         raise HTTPException(status_code=401, detail="Invalid credentials")
     expire = datetime.now(timezone.utc) + timedelta(hours=1)
     token = jwt.encode(
         {
             "user_id": user.id,
             "username": user.username,
-            "exp": expire
+            "exp": int(expire.timestamp())
         },
         SECRET_KEY,
         algorithm="HS256"
