@@ -5,10 +5,19 @@ import { useRouter } from 'next/navigation'
 export function LogoutButton() {
   const router = useRouter()
 
-  const handleLogout = () => {
-    // Redirect to Ory logout flow
-    // This will redirect back to geometrics after logout
-    window.location.href = `https://kratos.combaldieu.fr/self-service/logout/browser?return_to=${encodeURIComponent(window.location.origin)}`
+  const handleLogout = async () => {
+    try {
+      // Initialize logout flow
+      const response = await fetch('https://kratos.combaldieu.fr/self-service/logout/browser', {
+        credentials: 'include'
+      })
+      const data = await response.json()
+      
+      // Follow the logout URL
+      window.location.href = data.logout_url
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
   }
 
   return (

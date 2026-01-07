@@ -33,41 +33,9 @@ create_namespace() {
     fi
 }
 
-# Create GHCR secret for pulling private images
-create_ghcr_secret() {
-    log_step "Creating GHCR secret for image pulling"
-
-    # Check if secret already exists
-    if kubectl get secret ghcr-secret -n "$GEOMETRICS_NAMESPACE" &>/dev/null; then
-        log_info "GHCR secret already exists"
-        return
-    fi
-
-    # Check for required environment variables
-    if [[ -z "${GITHUB_USERNAME:-}" || -z "${GITHUB_TOKEN:-}" ]]; then
-        log_error "GITHUB_USERNAME and GITHUB_TOKEN environment variables must be set"
-        log_error "Example: export GITHUB_USERNAME=yourusername"
-        log_error "         export GITHUB_TOKEN=yourpersonalaccesstoken"
-        exit 1
-    fi
-
-    # Create the secret
-    kubectl create secret docker-registry ghcr-secret \
-        --namespace "$GEOMETRICS_NAMESPACE" \
-        --docker-server=ghcr.io \
-        --docker-username="$GITHUB_USERNAME" \
-        --docker-password="$GITHUB_TOKEN" \
-        --docker-email="$GITHUB_USERNAME@github.com"
-
-    log_info "GHCR secret created"
-}
-
 # Deploy frontend to Kubernetes
 deploy_frontend() {
     log_step "Deploying frontend to Kubernetes"
-
-    # Create GHCR secret first
-    create_ghcr_secret
 
     # Apply the deployment
     kubectl apply -f "$K8S_DIR/frontend-deployment.yaml" -n "$GEOMETRICS_NAMESPACE"

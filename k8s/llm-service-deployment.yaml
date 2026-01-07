@@ -35,3 +35,15 @@ spec:
           limits:
             memory: "256Mi"
             cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-service
+spec:
+  selector:
+    app: llm-service
+  ports:
+  - port: 8081
+    targetPort: 8081
+  type: ClusterIP
