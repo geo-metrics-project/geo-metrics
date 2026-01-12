@@ -41,19 +41,20 @@ create_namespace() {
 deploy_postgres() {
     log_step "Deploying PostgreSQL to $GEOMETRICS_NAMESPACE"
 
-    # Generate random password for postgres user
-    local postgres_pwd=$(generate_secret)
+    local geometrics_pwd=$(generate_secret)
 
-    # Deploy PostgreSQL
+    # Deploy PostgreSQL with Bitnami's built-in user creation
     helm upgrade --install geometrics-postgres bitnami/postgresql \
         --namespace "$GEOMETRICS_NAMESPACE" \
         -f "$PROJECT_ROOT/helm/values/values-postgres.yaml" \
-        --set global.postgresql.auth.password="$postgres_pwd" \
+        --set global.postgresql.auth.username="geometrics" \
+        --set global.postgresql.auth.password="$geometrics_pwd" \
+        --set global.postgresql.auth.database="geometrics" \
         --wait --timeout=5m
 
-    # Build DSN (correct host for Bitnami)
+    # Build DSN for geometrics user (correct host for Bitnami)
     local host="geometrics-postgres-postgresql.$GEOMETRICS_NAMESPACE.svc.cluster.local"
-    local db_dsn="postgresql://postgres:$postgres_pwd@$host:5432/geo_metrics?sslmode=disable"
+    local db_dsn="postgresql://geometrics:$geometrics_pwd@$host:5432/geometrics?sslmode=disable"
 
     # Create secret for services
     kubectl create secret generic geometrics-db-credentials \
@@ -61,9 +62,9 @@ deploy_postgres() {
         --from-literal=dsn="$db_dsn" \
         --from-literal=host="$host" \
         --from-literal=port="5432" \
-        --from-literal=database="geo_metrics" \
-        --from-literal=username="postgres" \
-        --from-literal=password="$postgres_pwd" \
+        --from-literal=database="geometrics" \
+        --from-literal=username="geometrics" \
+        --from-literal=password="$geometrics_pwd" \
         --dry-run=client -o yaml | kubectl apply -f -
 
     log_info "PostgreSQL deployed and DSN secrets created"

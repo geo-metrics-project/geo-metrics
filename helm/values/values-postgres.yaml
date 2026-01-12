@@ -30,11 +30,14 @@ primary:
       value: "UTC"
     - name: TZ
       value: "UTC"
-  
-  # Database initialization scripts
+
   initdb:
     scripts:
       init.sql: |
+        -- Database initialization for GEO-Metrics
+        -- User and database are created automatically by Bitnami Helm chart
+        -- This script only creates tables and indexes
+        
         -- Reports table (user_id references Ory Kratos identity)
         CREATE TABLE IF NOT EXISTS reports (
             id SERIAL PRIMARY KEY,
@@ -47,10 +50,10 @@ primary:
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
-
+        
         -- Index for JSONB queries on KPIs
         CREATE INDEX IF NOT EXISTS idx_reports_kpis ON reports USING GIN (kpis);
-
+        
         -- Store raw LLM responses for each unique combination
         CREATE TABLE IF NOT EXISTS llm_responses (
             id SERIAL PRIMARY KEY,
@@ -64,10 +67,15 @@ primary:
             response TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
-
+        
         CREATE INDEX IF NOT EXISTS idx_llm_responses_report ON llm_responses(report_id);
         CREATE INDEX IF NOT EXISTS idx_llm_responses_language ON llm_responses(language_code);
         CREATE INDEX IF NOT EXISTS idx_llm_responses_keyword ON llm_responses(keyword);
+        
+        -- Grant permissions to geometrics user
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO geometrics;
+        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO geometrics;
+
 
 # Read replicas (disabled for now)
 readReplicas:
