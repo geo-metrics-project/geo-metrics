@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, ARRAY
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
@@ -10,7 +11,9 @@ class Report(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     brand_name = Column(String(255), nullable=False)
+    competitor_names = Column(ARRAY(Text), nullable=True)
     user_id = Column(Integer, nullable=True)  # No foreign key constraint
+    kpis = Column(JSONB, default=dict)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
@@ -21,7 +24,9 @@ class Report(Base):
         return {
             "id": self.id,
             "brand_name": self.brand_name,
+            "competitor_names": self.competitor_names or [],
             "user_id": self.user_id,
+            "kpis": self.kpis or {},
             "created_at": self.created_at.isoformat() if self.created_at is not None else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at is not None else None
         }

@@ -22,6 +22,7 @@ class LLMResponseData(BaseModel):
 class CreateReportRequest(BaseModel):
     user_id: Optional[int] = Field(default=None, description="Optional user ID")
     brand_name: str = Field(..., description="Brand name to analyze")
+    competitor_names: Optional[List[str]] = Field(default=None, description="List of competitor brand names")
     llm_responses: List[LLMResponseData] = Field(..., description="LLM responses to store")
 
 @router.post("", status_code=201)
@@ -37,6 +38,7 @@ async def create_report(
         report = generator.generate_report(
             user_id=x_user_id,
             brand_name=request.brand_name,
+            competitor_names=request.competitor_names,
             llm_responses=llm_responses
         )
         logger.info(f"Successfully created report {report.id}")

@@ -19,6 +19,7 @@ router = APIRouter(prefix="/analyze", tags=["analysis"])
 
 class AnalyzeRequest(BaseModel):
     brand_name: str = Field(..., description="Brand name to analyze")
+    competitor_names: Optional[List[str]] = Field(default=None, description="List of competitor brand names for share of voice calculation")
     models: List[str] = Field(default=["meta-llama/Llama-3.1-8B-Instruct"], description="LLM models to query")
     keywords: List[str] = Field(..., description="Keywords to query")
     regions: List[str] = Field(default=["Global"], description="Region contexts")
@@ -137,6 +138,7 @@ async def analyze_brand(
     report = generator.generate_report(
         brand_name=request.brand_name,
         user_id=x_user_id,
+        competitor_names=request.competitor_names,
         llm_responses=llm_responses
     )
     
