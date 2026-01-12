@@ -1,6 +1,7 @@
 name: Build and Push Report Service
 
 on:
+  workflow_dispatch:  # Allow manual triggering
   push:
     branches: [ master ]
     paths: [ 'report-service/**' ]  # Only trigger on report-service changes

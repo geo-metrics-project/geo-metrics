@@ -1,6 +1,7 @@
 name: Build and Push Frontend
 
 on:
+  workflow_dispatch:  # Allow manual triggering
   push:
     branches: [ master ]
     paths: [ 'frontend/**' ]  # Only trigger on frontend changes
