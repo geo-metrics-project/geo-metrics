@@ -16,26 +16,40 @@ spec:
     spec:
       containers:
       - name: report-service
-        image: report-service:latest
-        imagePullPolicy: Never
+        image: ghcr.io/geo-metrics-project/geo-metrics/report-service:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
         env:
         - name: PORT
           value: "8080"
         - name: DB_HOST
-          value: "db"
+          valueFrom:
+            secretKeyRef:
+              name: geometrics-db-credentials
+              key: host
         - name: DB_PORT
-          value: "5432"
+          valueFrom:
+            secretKeyRef:
+              name: geometrics-db-credentials
+              key: port
         - name: DB_NAME
-          value: "geo_metrics"
+          valueFrom:
+            secretKeyRef:
+              name: geometrics-db-credentials
+              key: database
         - name: DB_USER
-          value: "postgres"
+          valueFrom:
+            secretKeyRef:
+              name: geometrics-db-credentials
+              key: username
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: db-secret
-              key: DB_PASSWORD
+              name: geometrics-db-credentials
+              key: password
+        - name: LLM_SERVICE_URL
+          value: "http://llm-service.geo-metrics.svc.cluster.local:8081"
         resources:
           requests:
             memory: "128Mi"

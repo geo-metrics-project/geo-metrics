@@ -16,10 +16,14 @@ log_step() { echo -e "${BLUE}==>${NC} $1"; }
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-K8S_DIR="$PROJECT_ROOT/k8s"
 
 # Namespace
 GEOMETRICS_NAMESPACE="geo-metrics"
+
+# Generate secure random secrets
+generate_secret() {
+    openssl rand -base64 32 | tr -d "=+/" | cut -c1-32
+}
 
 # Create geometrics namespace if it doesn't exist
 create_namespace() {
@@ -33,12 +37,77 @@ create_namespace() {
     fi
 }
 
+# Deploy PostgreSQL database
+deploy_postgres() {
+    log_step "Deploying PostgreSQL to $GEOMETRICS_NAMESPACE"
+
+    # Generate random password for postgres user
+    local postgres_pwd=$(generate_secret)
+
+    # Deploy PostgreSQL
+    helm upgrade --install geometrics-postgres bitnami/postgresql \
+        --namespace "$GEOMETRICS_NAMESPACE" \
+        -f "$PROJECT_ROOT/helm/values/values-postgres.yaml" \
+        --set global.postgresql.auth.password="$postgres_pwd" \
+        --wait --timeout=5m
+
+    # Build DSN (correct host for Bitnami)
+    local host="geometrics-postgres-postgresql.$GEOMETRICS_NAMESPACE.svc.cluster.local"
+    local db_dsn="postgresql://postgres:$postgres_pwd@$host:5432/geo_metrics?sslmode=disable"
+
+    # Create secret for services
+    kubectl create secret generic geometrics-db-credentials \
+        --namespace "$GEOMETRICS_NAMESPACE" \
+        --from-literal=dsn="$db_dsn" \
+        --from-literal=host="$host" \
+        --from-literal=port="5432" \
+        --from-literal=database="geo_metrics" \
+        --from-literal=username="postgres" \
+        --from-literal=password="$postgres_pwd" \
+        --dry-run=client -o yaml | kubectl apply -f -
+
+    log_info "PostgreSQL deployed and DSN secrets created"
+}
+
+# Deploy LLM Service to Kubernetes
+deploy_llm_service() {
+    log_step "Deploying LLM service to Kubernetes"
+
+    # Check if llm-secrets exists
+    if ! kubectl get secret llm-secrets -n "$GEOMETRICS_NAMESPACE" &>/dev/null; then
+        log_error "Secret 'llm-secrets' not found in namespace '$GEOMETRICS_NAMESPACE'"
+        log_error "Create it with: kubectl create secret generic llm-secrets --namespace $GEOMETRICS_NAMESPACE --from-literal=HUGGINGFACE_API_KEY=your-key"
+        return 1
+    fi
+
+    # Apply the deployment
+    kubectl apply -f "$PROJECT_ROOT/k8s/llm-service-deployment.yaml" -n "$GEOMETRICS_NAMESPACE"
+
+    # Wait for rollout
+    kubectl rollout status deployment/llm-service -n "$GEOMETRICS_NAMESPACE" --timeout=300s
+
+    log_info "LLM service deployed successfully"
+}
+
+# Deploy Report Service to Kubernetes
+deploy_report_service() {
+    log_step "Deploying Report service to Kubernetes"
+
+    # Apply the deployment
+    kubectl apply -f "$PROJECT_ROOT/k8s/report-service-deployment.yaml" -n "$GEOMETRICS_NAMESPACE"
+
+    # Wait for rollout
+    kubectl rollout status deployment/report-service -n "$GEOMETRICS_NAMESPACE" --timeout=300s
+
+    log_info "Report service deployed successfully"
+}
+
 # Deploy frontend to Kubernetes
 deploy_frontend() {
     log_step "Deploying frontend to Kubernetes"
 
     # Apply the deployment
-    kubectl apply -f "$K8S_DIR/frontend-deployment.yaml" -n "$GEOMETRICS_NAMESPACE"
+    kubectl apply -f "$PROJECT_ROOT/k8s/frontend-deployment.yaml" -n "$GEOMETRICS_NAMESPACE"
 
     # Wait for rollout
     kubectl rollout status deployment/frontend -n "$GEOMETRICS_NAMESPACE" --timeout=300s

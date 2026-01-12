@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
       - name: llm-service
-        image: llm-service:latest
-        imagePullPolicy: Never
+        image: ghcr.io/geo-metrics-project/geo-metrics/llm-service:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8081
         env:
