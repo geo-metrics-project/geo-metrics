@@ -2,7 +2,7 @@ import os
 import logging
 from ory_client import Configuration, ApiClient
 from ory_client.api import relationship_api
-from ory_client.models import RelationQuery, Relationship
+from ory_client.models import CreateRelationshipBody
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ async def create_owner_relationship(user_id: str, report_id: int):
             api = relationship_api.RelationshipApi(api_client)
             
             # Create owner relationship
-            owner_relationship = Relationship(
+            owner_relationship = CreateRelationshipBody(
                 namespace="reports",
                 object=f"report:{report_id}",
                 relation="owner",
@@ -29,7 +29,7 @@ async def create_owner_relationship(user_id: str, report_id: int):
             api.create_relationship(owner_relationship)
             
             # Also grant view access to the owner
-            view_relationship = Relationship(
+            view_relationship = CreateRelationshipBody(
                 namespace="reports",
                 object=f"report:{report_id}",
                 relation="view",
@@ -47,7 +47,7 @@ async def grant_view_access(user_id: str, report_id: int):
     try:
         with ApiClient(write_config) as api_client:
             api = relationship_api.RelationshipApi(api_client)
-            relationship = Relationship(
+            relationship = CreateRelationshipBody(
                 namespace="reports",
                 object=f"report:{report_id}",
                 relation="view",
