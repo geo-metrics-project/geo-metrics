@@ -42,7 +42,7 @@ class ReportResponse(BaseModel):
     updated_at: str
 
 class CreateReportRequest(BaseModel):
-    user_id: str = Field(default=None, description="Kratos user ID")
+    user_id: str = Field(..., description="Kratos user ID")
     brand_name: str = Field(..., description="Brand name to analyze")
     competitor_names: Optional[List[str]] = Field(default=None, description="List of competitor brand names")
     llm_responses: List[LLMResponseData] = Field(..., description="LLM responses to store")
