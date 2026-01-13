@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
+from datetime import datetime
 from database import get_db
 from services.report_generator import ReportGenerator
 from models.report_model import Report, LLMResponse
@@ -19,13 +20,34 @@ class LLMResponseData(BaseModel):
     prompt_text: str = Field(..., description="Full prompt text sent to the model")
     response: str = Field(..., description="Response from the LLM")
 
+class LLMResponseOut(BaseModel):
+    id: int
+    report_id: int
+    prompt_template: str
+    region: str
+    language_code: str
+    keyword: str
+    model: str
+    prompt_text: str
+    response: str
+    created_at: str
+
+class ReportResponse(BaseModel):
+    id: int
+    brand_name: str
+    competitor_names: List[str]
+    user_id: Optional[int]
+    kpis: Dict[str, Any]
+    created_at: str
+    updated_at: str
+
 class CreateReportRequest(BaseModel):
     user_id: Optional[int] = Field(default=None, description="Optional user ID")
     brand_name: str = Field(..., description="Brand name to analyze")
     competitor_names: Optional[List[str]] = Field(default=None, description="List of competitor brand names")
     llm_responses: List[LLMResponseData] = Field(..., description="LLM responses to store")
 
-@router.post("", status_code=201)
+@router.post("", status_code=201, response_model=ReportResponse)
 async def create_report(
     request: CreateReportRequest,
     db: Session = Depends(get_db),
@@ -47,7 +69,7 @@ async def create_report(
         logger.error(f"Error creating report: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error creating report: {str(e)}")
 
-@router.get("")
+@router.get("", response_model=List[ReportResponse])
 async def list_reports(
     db: Session = Depends(get_db),
     x_user_id: int = Header(...)
@@ -55,7 +77,7 @@ async def list_reports(
     reports = db.query(Report).filter(Report.user_id == x_user_id).all()
     return [report.to_dict() for report in reports]
 
-@router.get("/{report_id}")
+@router.get("/{report_id}", response_model=ReportResponse)
 async def get_report(
     report_id: int,
     db: Session = Depends(get_db),
@@ -79,7 +101,7 @@ async def delete_report(
     db.commit()
     return None
 
-@router.get("/{report_id}/llm-responses")
+@router.get("/{report_id}/llm-responses", response_model=List[LLMResponseOut])
 async def get_report_llm_responses(
     report_id: int,
     db: Session = Depends(get_db),
