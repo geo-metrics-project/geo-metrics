@@ -1,24 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
-from datetime import datetime
+from typing import List, Dict, Any
+from pydantic import BaseModel
 from database import get_db
-from services.report_generator import ReportGenerator
 from models.report_model import Report, LLMResponse
 import logging
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/reports", tags=["reports"])
-
-class LLMResponseData(BaseModel):
-    model: str = Field(..., description="Model used for the query")
-    keyword: str = Field(..., description="Keyword that was queried")
-    language_code: str = Field(..., description="Language code used")
-    region: str = Field(..., description="Region context used")
-    prompt_text: str = Field(..., description="Full prompt text sent to the model")
-    response: str = Field(..., description="Response from the LLM")
 
 class LLMResponseOut(BaseModel):
     id: int
@@ -40,33 +30,6 @@ class ReportResponse(BaseModel):
     kpis: Dict[str, Any]
     created_at: str
     updated_at: str
-
-class CreateReportRequest(BaseModel):
-    brand_name: str = Field(..., description="Brand name to analyze")
-    competitor_names: Optional[List[str]] = Field(default=None, description="List of competitor brand names")
-    llm_responses: List[LLMResponseData] = Field(..., description="LLM responses to store")
-
-@router.post("", status_code=201, response_model=ReportResponse)
-async def create_report(
-    request: CreateReportRequest,
-    db: Session = Depends(get_db),
-    x_user_id: str = Header(...)
-):
-    try:
-        logger.info(f"Creating report for brand: {request.brand_name} by user {x_user_id}")
-        llm_responses = [resp.model_dump() for resp in request.llm_responses]
-        generator = ReportGenerator(db)
-        report = generator.generate_report(
-            user_id=x_user_id,
-            brand_name=request.brand_name,
-            competitor_names=request.competitor_names,
-            llm_responses=llm_responses
-        )
-        logger.info(f"Successfully created report {report.id}")
-        return report.to_dict()
-    except Exception as e:
-        logger.error(f"Error creating report: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error creating report: {str(e)}")
 
 @router.get("", response_model=List[ReportResponse])
 async def list_reports(

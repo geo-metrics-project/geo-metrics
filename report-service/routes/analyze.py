@@ -10,12 +10,19 @@ from datetime import datetime, timezone
 from database import get_db
 from services.report_generator import ReportGenerator
 from deep_translator import GoogleTranslator
-from routes.reports import LLMResponseData
 
 logger = logging.getLogger(__name__)
 LLM_SERVICE_URL = os.getenv("LLM_SERVICE_URL", "http://llm-service:8081")
 
 router = APIRouter(prefix="/analyze", tags=["analysis"])
+
+class LLMResponseData(BaseModel):
+    model: str = Field(..., description="Model used for the query")
+    keyword: str = Field(..., description="Keyword that was queried")
+    language_code: str = Field(..., description="Language code used")
+    region: str = Field(..., description="Region context used")
+    prompt_text: str = Field(..., description="Full prompt text sent to the model")
+    response: str = Field(..., description="Response from the LLM")
 
 class AnalyzeRequest(BaseModel):
     brand_name: str = Field(..., description="Brand name to analyze")
