@@ -12,7 +12,7 @@ class Report(Base):
     id = Column(Integer, primary_key=True, index=True)
     brand_name = Column(String(255), nullable=False)
     competitor_names = Column(ARRAY(Text), nullable=True)
-    user_id = Column(Integer, nullable=True)  # No foreign key constraint
+    user_id = Column(String(255), nullable=False)  # Kratos UUID
     kpis = Column(JSONB, default=dict)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

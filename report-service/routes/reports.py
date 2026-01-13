@@ -36,7 +36,7 @@ class ReportResponse(BaseModel):
     id: int
     brand_name: str
     competitor_names: List[str]
-    user_id: Optional[int]
+    user_id: str
     kpis: Dict[str, Any]
     created_at: str
     updated_at: str
@@ -51,7 +51,7 @@ class CreateReportRequest(BaseModel):
 async def create_report(
     request: CreateReportRequest,
     db: Session = Depends(get_db),
-    x_user_id: int = Header(...)
+    x_user_id: str = Header(...)
 ):
     try:
         logger.info(f"Creating report for brand: {request.brand_name} by user {x_user_id}")
@@ -72,7 +72,7 @@ async def create_report(
 @router.get("", response_model=List[ReportResponse])
 async def list_reports(
     db: Session = Depends(get_db),
-    x_user_id: int = Header(...)
+    x_user_id: str = Header(...)
 ):
     reports = db.query(Report).filter(Report.user_id == x_user_id).all()
     return [report.to_dict() for report in reports]
@@ -81,7 +81,7 @@ async def list_reports(
 async def get_report(
     report_id: int,
     db: Session = Depends(get_db),
-    x_user_id: int = Header(...)
+    x_user_id: str = Header(...)
 ):
     report = db.query(Report).filter(Report.id == report_id, Report.user_id == x_user_id).first()
     if not report:
@@ -92,7 +92,7 @@ async def get_report(
 async def delete_report(
     report_id: int,
     db: Session = Depends(get_db),
-    x_user_id: int = Header(...)
+    x_user_id: str = Header(...)
 ):
     report = db.query(Report).filter(Report.id == report_id, Report.user_id == x_user_id).first()
     if not report:
@@ -105,7 +105,7 @@ async def delete_report(
 async def get_report_llm_responses(
     report_id: int,
     db: Session = Depends(get_db),
-    x_user_id: int = Header(...)
+    x_user_id: str = Header(...)
 ):
     report = db.query(Report).filter(Report.id == report_id, Report.user_id == x_user_id).first()
     if not report:

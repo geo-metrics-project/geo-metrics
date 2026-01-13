@@ -81,7 +81,7 @@ async def query_llm(client: httpx.AsyncClient, model: str, prompt: str, region: 
 async def analyze_brand(
     request: AnalyzeRequest,
     db: Session = Depends(get_db),
-    x_user_id: int = Header(...)
+    x_user_id: str = Header(...)
 ):
     """Analyze brand visibility across LLM providers"""
     logger.info(

@@ -43,7 +43,7 @@ primary:
             id SERIAL PRIMARY KEY,
             brand_name VARCHAR(255) NOT NULL,
             competitor_names TEXT[],
-            user_id INTEGER,
+            user_id VARCHAR(255) NOT NULL,  -- Kratos UUID
             
             -- Flexible KPI storage (add/remove metrics without schema changes)
             kpis JSONB DEFAULT '{}'::jsonb,
