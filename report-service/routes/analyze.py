@@ -90,7 +90,7 @@ async def analyze_brand(
     db: Session = Depends(get_db),
     x_user_id: str = Header(...)
 ):
-    """Analyze brand visibility across LLM providers"""
+    """Analyze brand visibility across LLM providers and creates a report."""
     logger.info(
         f"Analyzing {request.brand_name}: "
         f"{len(request.models)} models"
