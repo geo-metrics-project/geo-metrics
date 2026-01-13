@@ -118,15 +118,16 @@ async def check_access(user_id: str, report_id: int, action: str = "view") -> bo
         with ApiClient(read_config) as api_client:
             api = relationship_api.RelationshipApi(api_client)
             
-            # Check if relationship exists
-            result = api.check_opl_syntax_permission(
+            # Check if relationship exists by querying for it
+            relationships = api.get_relationships(
                 namespace="Report",
                 object=str(report_id),
                 relation=action,
                 subject_id=user_id
             )
             
-            return result.allowed
+            # If any relationships exist, user has access
+            return len(relationships.relation_tuples) > 0
     except Exception as e:
         logger.error(f"Failed to check access: {e}")
         return False
