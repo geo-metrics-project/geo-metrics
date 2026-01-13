@@ -4,7 +4,7 @@ from typing import List, Dict, Any
 from pydantic import BaseModel
 from database import get_db
 from models.report_model import Report, LLMResponse
-from keto_client import grant_view_access, revoke_access, delete_all_relationships
+from keto_client import grant_view_access, revoke_access, delete_all_relationships, get_user_accessible_reports
 import logging
 import os
 import httpx
@@ -40,7 +40,15 @@ async def list_reports(
     db: Session = Depends(get_db),
     x_user_id: str = Header(...)
 ):
-    reports = db.query(Report).filter(Report.user_id == x_user_id).all()
+    # Get all report IDs the user has access to via Keto
+    accessible_report_ids = await get_user_accessible_reports(x_user_id)
+    
+    if not accessible_report_ids:
+        # User has no accessible reports
+        return []
+    
+    # Query database for these reports
+    reports = db.query(Report).filter(Report.id.in_(accessible_report_ids)).all()
     return [report.to_dict() for report in reports]
 
 @router.get("/{report_id}", response_model=ReportResponse)

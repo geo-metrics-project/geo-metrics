@@ -21,8 +21,8 @@ async def create_owner_relationship(user_id: str, report_id: int):
             
             # Create owner relationship
             owner_relationship = CreateRelationshipBody(
-                namespace="reports",
-                object=f"report:{report_id}",
+                namespace="Report",
+                object=str(report_id),
                 relation="owner",
                 subject_id=user_id
             )
@@ -30,14 +30,14 @@ async def create_owner_relationship(user_id: str, report_id: int):
             
             # Also grant view access to the owner
             view_relationship = CreateRelationshipBody(
-                namespace="reports",
-                object=f"report:{report_id}",
+                namespace="Report",
+                object=str(report_id),
                 relation="view",
                 subject_id=user_id
             )
             api.create_relationship(view_relationship)
             
-            logger.info(f"Created ownership and view access: {user_id} owns report:{report_id}")
+            logger.info(f"Created ownership and view access: {user_id} owns Report:{report_id}")
     except Exception as e:
         logger.error(f"Failed to create Keto relationship: {e}")
         raise
@@ -48,13 +48,13 @@ async def grant_view_access(user_id: str, report_id: int):
         with ApiClient(write_config) as api_client:
             api = relationship_api.RelationshipApi(api_client)
             relationship = CreateRelationshipBody(
-                namespace="reports",
-                object=f"report:{report_id}",
+                namespace="Report",
+                object=str(report_id),
                 relation="view",
                 subject_id=user_id
             )
             api.create_relationship(relationship)
-            logger.info(f"Granted view access: {user_id} can view report:{report_id}")
+            logger.info(f"Granted view access: {user_id} can view Report:{report_id}")
     except Exception as e:
         logger.error(f"Failed to grant view access: {e}")
         raise
@@ -65,12 +65,12 @@ async def revoke_access(user_id: str, report_id: int, relation: str = "view"):
         with ApiClient(write_config) as api_client:
             api = relationship_api.RelationshipApi(api_client)
             api.delete_relationships(
-                namespace="reports",
-                object=f"report:{report_id}",
+                namespace="Report",
+                object=str(report_id),
                 relation=relation,
                 subject_id=user_id
             )
-            logger.info(f"Revoked {relation} access: {user_id} from report:{report_id}")
+            logger.info(f"Revoked {relation} access: {user_id} from Report:{report_id}")
     except Exception as e:
         logger.error(f"Failed to revoke access: {e}")
         raise
@@ -82,10 +82,32 @@ async def delete_all_relationships(report_id: int):
             api = relationship_api.RelationshipApi(api_client)
             # Delete all relationships for this report object
             api.delete_relationships(
-                namespace="reports",
-                object=f"report:{report_id}"
+                namespace="Report",
+                object=str(report_id)
             )
-            logger.info(f"Deleted all relationships for report:{report_id}")
+            logger.info(f"Deleted all relationships for Report:{report_id}")
     except Exception as e:
         logger.error(f"Failed to delete relationships: {e}")
         raise
+
+async def get_user_accessible_reports(user_id: str) -> list[int]:
+    """Get all report IDs that the user can view (owned or shared)"""
+    try:
+        with ApiClient(read_config) as api_client:
+            api = relationship_api.RelationshipApi(api_client)
+            
+            # Query for all reports where user has 'view' relation
+            relationships = api.get_relationships(
+                namespace="Report",
+                relation="view",
+                subject_id=user_id
+            )
+            
+            # Extract report IDs from the relationships
+            report_ids = [int(rel.object) for rel in relationships.relation_tuples]
+            logger.info(f"User {user_id} has view access to {len(report_ids)} reports")
+            return report_ids
+    except Exception as e:
+        logger.error(f"Failed to get user accessible reports: {e}")
+        # Return empty list on error to avoid blocking the user
+        return []
