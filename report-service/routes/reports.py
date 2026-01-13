@@ -10,7 +10,7 @@ import os
 import httpx
 
 logger = logging.getLogger(__name__)
-KRATOS_ADMIN_URL = os.getenv("KRATOS_ADMIN_URL", "http://kratos-admin.geo-ory.svc.cluster.local:4434")
+KRATOS_ADMIN_URL = os.getenv("KRATOS_ADMIN_URL", "http://kratos-admin.geo-ory.svc.cluster.local:80")
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
@@ -118,7 +118,7 @@ class ShareReportRequest(BaseModel):
 async def lookup_user_by_email(email: str) -> str:
     """Look up Kratos user ID by email address"""
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(
                 f"{KRATOS_ADMIN_URL}/admin/identities",
                 params={"credentials_identifier": email}
