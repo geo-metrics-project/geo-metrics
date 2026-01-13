@@ -50,6 +50,8 @@ spec:
               key: password
         - name: LLM_SERVICE_URL
           value: "http://llm-service.geo-metrics.svc.cluster.local:8081"
+        - name: KRATOS_ADMIN_URL
+          value: "http://kratos-admin.geo-ory.svc.cluster.local:4434"
         resources:
           requests:
             memory: "128Mi"

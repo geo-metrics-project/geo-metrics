@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from database import get_db
 from services.report_generator import ReportGenerator
 from deep_translator import GoogleTranslator
+from keto_client import create_owner_relationship
 
 logger = logging.getLogger(__name__)
 LLM_SERVICE_URL = os.getenv("LLM_SERVICE_URL", "http://llm-service:8081")
@@ -148,6 +149,9 @@ async def analyze_brand(
         competitor_names=request.competitor_names,
         llm_responses=llm_responses
     )
+    
+    # Create ownership relationship in Keto
+    await create_owner_relationship(x_user_id, report.id)
     
     successful = len(llm_responses)
     failed = len(results) - successful
