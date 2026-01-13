@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from database import get_db
 from models.report_model import Report, LLMResponse
 from keto_client import grant_view_access, revoke_access, delete_all_relationships
@@ -90,7 +90,7 @@ async def get_report_llm_responses(
 # Sharing endpoints
 
 class ShareReportRequest(BaseModel):
-    email: EmailStr
+    email: str
 
 async def lookup_user_by_email(email: str) -> str:
     """Look up Kratos user ID by email address"""
