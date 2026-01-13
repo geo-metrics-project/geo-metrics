@@ -111,3 +111,22 @@ async def get_user_accessible_reports(user_id: str) -> list[int]:
         logger.error(f"Failed to get user accessible reports: {e}")
         # Return empty list on error to avoid blocking the user
         return []
+
+async def check_access(user_id: str, report_id: int, action: str = "view") -> bool:
+    """Check if user has specific access to a report"""
+    try:
+        with ApiClient(read_config) as api_client:
+            api = relationship_api.RelationshipApi(api_client)
+            
+            # Check if relationship exists
+            result = api.check_opl_syntax_permission(
+                namespace="Report",
+                object=str(report_id),
+                relation=action,
+                subject_id=user_id
+            )
+            
+            return result.allowed
+    except Exception as e:
+        logger.error(f"Failed to check access: {e}")
+        return False

@@ -4,7 +4,7 @@ from typing import List, Dict, Any
 from pydantic import BaseModel
 from database import get_db
 from models.report_model import Report, LLMResponse
-from keto_client import grant_view_access, revoke_access, delete_all_relationships, get_user_accessible_reports
+from keto_client import grant_view_access, revoke_access, delete_all_relationships, get_user_accessible_reports, check_access
 import logging
 import os
 import httpx
@@ -57,6 +57,11 @@ async def get_report(
     db: Session = Depends(get_db),
     x_user_id: str = Header(...)
 ):
+    # Check access via Keto
+    has_access = await check_access(x_user_id, report_id, "view")
+    if not has_access:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
     report = db.query(Report).filter(Report.id == report_id).first()
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
@@ -68,6 +73,11 @@ async def delete_report(
     db: Session = Depends(get_db),
     x_user_id: str = Header(...)
 ):
+    # Check owner access via Keto
+    is_owner = await check_access(x_user_id, report_id, "owner")
+    if not is_owner:
+        raise HTTPException(status_code=403, detail="Only owners can delete reports")
+    
     report = db.query(Report).filter(Report.id == report_id).first()
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
@@ -87,6 +97,11 @@ async def get_report_llm_responses(
     db: Session = Depends(get_db),
     x_user_id: str = Header(...)
 ):
+    # Check access via Keto
+    has_access = await check_access(x_user_id, report_id, "view")
+    if not has_access:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
     report = db.query(Report).filter(Report.id == report_id).first()
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
@@ -127,6 +142,11 @@ async def share_report(
     x_user_id: str = Header(...)
 ):
     """Share a report with another user by email"""
+    # Check owner access via Keto
+    is_owner = await check_access(x_user_id, report_id, "owner")
+    if not is_owner:
+        raise HTTPException(status_code=403, detail="Only owners can share reports")
+    
     # Verify report exists
     report = db.query(Report).filter(Report.id == report_id).first()
     if not report:
@@ -148,6 +168,11 @@ async def unshare_report(
     x_user_id: str = Header(...)
 ):
     """Revoke access to a shared report"""
+    # Check owner access via Keto
+    is_owner = await check_access(x_user_id, report_id, "owner")
+    if not is_owner:
+        raise HTTPException(status_code=403, detail="Only owners can unshare reports")
+    
     # Verify report exists
     report = db.query(Report).filter(Report.id == report_id).first()
     if not report:
