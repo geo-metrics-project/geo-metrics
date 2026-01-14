@@ -14,6 +14,12 @@ spec:
       labels:
         app: llm-service
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: llm-service
         image: ghcr.io/geo-metrics-project/geo-metrics/llm-service:latest
@@ -28,6 +34,14 @@ spec:
             secretKeyRef:
               name: llm-secrets
               key: HUGGINGFACE_API_KEY
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+              - ALL
+          readOnlyRootFilesystem: false
         resources:
           requests:
             memory: "128Mi"

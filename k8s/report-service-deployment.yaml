@@ -14,6 +14,12 @@ spec:
       labels:
         app: report-service
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: report-service
         image: ghcr.io/geo-metrics-project/geo-metrics/report-service:latest
@@ -56,6 +62,14 @@ spec:
           value: "http://keto-write.geo-ory.svc.cluster.local:4467"
         - name: KETO_READ_URL
           value: "http://keto-read.geo-ory.svc.cluster.local:4466"
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+              - ALL
+          readOnlyRootFilesystem: false
         resources:
           requests:
             memory: "128Mi"
