@@ -4,8 +4,8 @@ from typing import List, Dict, Any
 from pydantic import BaseModel
 from database import get_db
 from models.report_model import Report, LLMResponse
-from clients.keto_client import grant_view_access, revoke_access, delete_all_relationships, get_user_accessible_reports, check_access
-from clients.kratos_client import lookup_user_by_email
+from clients.keto_client import grant_view_access, revoke_access, delete_all_relationships, get_user_accessible_reports, check_access, get_report_viewers
+from clients.kratos_client import lookup_user_by_email, get_user_email
 import logging
 
 logger = logging.getLogger(__name__)
@@ -113,6 +113,10 @@ async def get_report_llm_responses(
 class ShareReportRequest(BaseModel):
     email: str
 
+class SharedUserResponse(BaseModel):
+    user_id: str
+    email: str
+
 @router.post("/{report_id}/share", status_code=204)
 async def share_report(
     report_id: int,
@@ -139,10 +143,46 @@ async def share_report(
     
     return None
 
-@router.delete("/{report_id}/share/{target_user_id}", status_code=204)
+@router.get("/{report_id}/shared-with", response_model=List[SharedUserResponse])
+async def get_shared_users(
+    report_id: int,
+    db: Session = Depends(get_db),
+    x_user_id: str = Header(...)
+):
+    """Get list of users who have access to this report"""
+    # Check owner access via Keto
+    is_owner = await check_access(x_user_id, report_id, "owner")
+    if not is_owner:
+        raise HTTPException(status_code=403, detail="Only owners can view shared users")
+    
+    # Verify report exists
+    report = db.query(Report).filter(Report.id == report_id).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+    
+    # Get users from Keto
+    user_ids = await get_report_viewers(report_id)
+    
+    # Look up emails for each user_id from Kratos
+    shared_users = []
+    for uid in user_ids:
+        if uid == x_user_id:
+            # Skip the owner themselves
+            continue
+        try:
+            email = await get_user_email(uid)
+            shared_users.append({"user_id": uid, "email": email})
+        except Exception as e:
+            logger.warning(f"Could not get email for user {uid}: {e}")
+            # Skip users we can't look up
+            continue
+    
+    return shared_users
+
+@router.delete("/{report_id}/share", status_code=204)
 async def unshare_report(
     report_id: int,
-    target_user_id: str,
+    request: ShareReportRequest,
     db: Session = Depends(get_db),
     x_user_id: str = Header(...)
 ):
@@ -156,6 +196,9 @@ async def unshare_report(
     report = db.query(Report).filter(Report.id == report_id).first()
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
+    
+    # Look up target user by email
+    target_user_id = await lookup_user_by_email(request.email)
     
     # Revoke access in Keto
     await revoke_access(target_user_id, report_id)

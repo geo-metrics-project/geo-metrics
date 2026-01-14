@@ -131,3 +131,24 @@ async def check_access(user_id: str, report_id: int, action: str = "view") -> bo
     except Exception as e:
         logger.error(f"Failed to check access: {e}")
         return False
+
+async def get_report_viewers(report_id: int) -> list[str]:
+    """Get all user IDs who have view access to a report (excluding owners)"""
+    try:
+        with ApiClient(read_config) as api_client:
+            api = relationship_api.RelationshipApi(api_client)
+            
+            # Query for all users with 'view' relation to this report
+            relationships = api.get_relationships(
+                namespace="Report",
+                object=str(report_id),
+                relation="view"
+            )
+            
+            # Extract user IDs, excluding the owner
+            user_ids = [rel.subject_id for rel in relationships.relation_tuples if rel.subject_id]
+            logger.info(f"Report {report_id} has {len(user_ids)} viewers")
+            return user_ids
+    except Exception as e:
+        logger.error(f"Failed to get report viewers: {e}")
+        return []

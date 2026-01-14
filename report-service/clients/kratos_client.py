@@ -38,3 +38,29 @@ async def lookup_user_by_email(email: str) -> str:
     except Exception as e:
         logger.error(f"Error looking up user by email {email}: {e}")
         raise HTTPException(status_code=500, detail=f"Error looking up user: {str(e)}")
+
+async def get_user_email(user_id: str) -> str:
+    """Get email address for a Kratos user ID"""
+    try:
+        with ApiClient(kratos_config) as api_client:
+            api = identity_api.IdentityApi(api_client)
+            
+            # Get identity by ID
+            identity = api.get_identity(id=user_id)
+            
+            if not identity or not identity.traits:
+                raise HTTPException(status_code=404, detail=f"User with ID '{user_id}' not found")
+            
+            # Extract email from traits
+            email = identity.traits.get("email")
+            if not email:
+                raise HTTPException(status_code=500, detail="User has no email address")
+            
+            logger.info(f"Found email {email} for user ID {user_id}")
+            return email
+    except HTTPException:
+        # Re-raise HTTPExceptions as-is
+        raise
+    except Exception as e:
+        logger.error(f"Error getting email for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting user email: {str(e)}")
