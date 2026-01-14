@@ -6,7 +6,7 @@ from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
 
-KRATOS_ADMIN_URL = os.getenv("KRATOS_ADMIN_URL", "http://kratos-admin.geo-ory.svc.cluster.local:80")
+KRATOS_ADMIN_URL = os.getenv("KRATOS_ADMIN_URL", "http://kratos-admin.geo-ory.svc.cluster.local")
 
 # Configure Kratos client
 kratos_config = Configuration(host=KRATOS_ADMIN_URL)
