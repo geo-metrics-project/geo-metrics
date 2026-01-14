@@ -29,6 +29,7 @@ class ReportResponse(BaseModel):
     brand_name: str
     competitor_names: List[str]
     user_id: str
+    owner_email: str
     kpis: Dict[str, Any]
     created_at: str
     updated_at: str

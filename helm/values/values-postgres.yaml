@@ -44,6 +44,7 @@ primary:
             brand_name VARCHAR(255) NOT NULL,
             competitor_names TEXT[],
             user_id VARCHAR(255) NOT NULL,  -- Kratos UUID
+            owner_email VARCHAR(255) NOT NULL,  -- Owner's email from Kratos
             
             -- Flexible KPI storage (add/remove metrics without schema changes)
             kpis JSONB DEFAULT '{}'::jsonb,

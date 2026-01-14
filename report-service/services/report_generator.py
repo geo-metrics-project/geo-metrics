@@ -54,7 +54,7 @@ class ReportGenerator:
             "competitor_mentions": competitor_mentions
         }
 
-    def generate_report(self, brand_name: str, user_id: str, llm_responses: list, competitor_names: Optional[List[str]] = None):
+    def generate_report(self, brand_name: str, user_id: str, owner_email: str, llm_responses: list, competitor_names: Optional[List[str]] = None):
         # Calculate KPIs
         kpis = self.calculate_kpis(brand_name, competitor_names or [], llm_responses)
         
@@ -63,6 +63,7 @@ class ReportGenerator:
             brand_name=brand_name,
             competitor_names=competitor_names,
             user_id=user_id,
+            owner_email=owner_email,
             kpis=kpis
         )
         self.db.add(report)
