@@ -4,13 +4,11 @@ from typing import List, Dict, Any
 from pydantic import BaseModel
 from database import get_db
 from models.report_model import Report, LLMResponse
-from keto_client import grant_view_access, revoke_access, delete_all_relationships, get_user_accessible_reports, check_access
+from clients.keto_client import grant_view_access, revoke_access, delete_all_relationships, get_user_accessible_reports, check_access
+from clients.kratos_client import lookup_user_by_email
 import logging
-import os
-import httpx
 
 logger = logging.getLogger(__name__)
-KRATOS_ADMIN_URL = os.getenv("KRATOS_ADMIN_URL", "http://kratos-admin.geo-ory.svc.cluster.local:80")
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
@@ -114,25 +112,6 @@ async def get_report_llm_responses(
 
 class ShareReportRequest(BaseModel):
     email: str
-
-async def lookup_user_by_email(email: str) -> str:
-    """Look up Kratos user ID by email address"""
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(
-                f"{KRATOS_ADMIN_URL}/admin/identities",
-                params={"credentials_identifier": email}
-            )
-            response.raise_for_status()
-            identities = response.json()
-            
-            if not identities:
-                raise HTTPException(status_code=404, detail="User not found")
-            
-            return identities[0]["id"]
-    except httpx.HTTPError as e:
-        logger.error(f"Error looking up user by email: {e}")
-        raise HTTPException(status_code=500, detail="Error looking up user")
 
 @router.post("/{report_id}/share", status_code=204)
 async def share_report(

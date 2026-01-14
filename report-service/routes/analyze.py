@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from database import get_db
 from services.report_generator import ReportGenerator
 from deep_translator import GoogleTranslator
-from keto_client import create_owner_relationship
+from clients.keto_client import create_owner_relationship
 
 logger = logging.getLogger(__name__)
 LLM_SERVICE_URL = os.getenv("LLM_SERVICE_URL", "http://llm-service:8081")
