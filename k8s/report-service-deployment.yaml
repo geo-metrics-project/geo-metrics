@@ -51,7 +51,11 @@ spec:
         - name: LLM_SERVICE_URL
           value: "http://llm-service.geo-metrics.svc.cluster.local:8081"
         - name: KRATOS_ADMIN_URL
-          value: "http://kratos-admin.geo-ory.svc.cluster.local:4434"
+          value: "http://kratos-admin.geo-ory.svc.cluster.local"
+        - name: KETO_WRITE_URL
+          value: "http://keto-write.geo-ory.svc.cluster.local:4467"
+        - name: KETO_READ_URL
+          value: "http://keto-read.geo-ory.svc.cluster.local:4466"
         resources:
           requests:
             memory: "128Mi"
