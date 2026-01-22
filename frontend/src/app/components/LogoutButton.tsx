@@ -1,28 +1,21 @@
-'use client'
+'use client';
 
-import { useRouter } from 'next/navigation'
-import { initLogout } from '@/lib/kratos'
+import { LogOut } from 'lucide-react';
 
 export function LogoutButton() {
-  const router = useRouter()
-
-  const handleLogout = async () => {
-    try {
-      const data = await initLogout()
-      
-      // Follow the logout URL
-      window.location.href = data.logout_url
-    } catch (error) {
-      console.error('Logout failed:', error)
-    }
-  }
+  const handleLogout = () => {
+    // Logique de déconnexion
+    console.log('Déconnexion...');
+    // Redirection ou appel API ici
+  };
 
   return (
     <button
       onClick={handleLogout}
-      className="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded"
+      className="group flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
     >
-      Logout
+      <LogOut className="w-4 h-4" />
+      <span>Déconnexion</span>
     </button>
-  )
+  );
 }
