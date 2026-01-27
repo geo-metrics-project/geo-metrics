@@ -1,19 +1,10 @@
-// Kratos API client for authentication flows
+import { Configuration, FrontendApi } from "@ory/client"
 
-const KRATOS_BASE_URL = process.env.NEXT_PUBLIC_KRATOS_URL || 'https://kratos.combaldieu.fr'
-
-/**
- * Initialize logout flow
- * @returns Logout flow data with logout URL
- */
-export async function initLogout() {
-  const response = await fetch(`${KRATOS_BASE_URL}/self-service/logout/browser`, {
-    credentials: 'include'
+export const kratosClient = new FrontendApi(
+  new Configuration({ 
+    basePath: process.env.NEXT_PUBLIC_KRATOS_URL || "http://kratos.combaldieu.fr",
+    baseOptions: { 
+      withCredentials: true 
+    }
   })
-  
-  if (!response.ok) {
-    throw new Error(`Logout initialization failed: ${response.statusText}`)
-  }
-  
-  return response.json()
-}
+)
