@@ -1,28 +1,22 @@
+// components/LogoutButton.tsx
 'use client'
 
-import { useRouter } from 'next/navigation'
-import { initLogout } from '@/lib/kratos'
+import { kratosClient } from "@/lib/kratos"
+import { useRouter } from "next/navigation"
 
 export function LogoutButton() {
   const router = useRouter()
-
+  
   const handleLogout = async () => {
     try {
-      const data = await initLogout()
-      
-      // Follow the logout URL
-      window.location.href = data.logout_url
+      const { data: flow } = await kratosClient.createBrowserLogoutFlow()
+      await kratosClient.updateLogoutFlow({ token: flow.logout_token })
+      router.push('/login')
+      router.refresh()
     } catch (error) {
-      console.error('Logout failed:', error)
+      console.error("Logout failed:", error)
     }
   }
-
-  return (
-    <button
-      onClick={handleLogout}
-      className="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded"
-    >
-      Logout
-    </button>
-  )
+  
+  return <button onClick={handleLogout}>Logout</button>
 }
