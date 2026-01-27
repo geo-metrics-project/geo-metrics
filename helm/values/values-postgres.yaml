@@ -46,9 +46,6 @@ primary:
             user_id VARCHAR(255) NOT NULL,  -- Kratos UUID
             owner_email VARCHAR(255) NOT NULL,  -- Owner's email from Kratos
             
-            -- Flexible KPI storage (add/remove metrics without schema changes)
-            kpis JSONB DEFAULT '{}'::jsonb,
-            
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
@@ -67,6 +64,8 @@ primary:
             model VARCHAR(255) NOT NULL,
             prompt_text TEXT NOT NULL,
             response TEXT NOT NULL,
+            -- Flexible KPI storage (add/remove metrics without schema changes)
+            kpis JSONB DEFAULT '{}'::jsonb,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         
