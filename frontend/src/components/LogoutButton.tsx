@@ -11,8 +11,6 @@ export function LogoutButton() {
     try {
       const { data: flow } = await kratosClient.createBrowserLogoutFlow()
       await kratosClient.updateLogoutFlow({ token: flow.logout_token })
-      router.push('/login')
-      router.refresh()
     } catch (error) {
       console.error("Logout failed:", error)
     }
