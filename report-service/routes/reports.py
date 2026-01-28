@@ -161,6 +161,7 @@ async def get_report_kpis(
     llm_responses = query.offset(offset).limit(limit).all()
     # Aggregate KPIs from all responses
     aggregated = {
+        "total_responses": len(llm_responses),
         "brand_mentioned": 0,
         "brand_citation_with_link": 0,
         "competitor_mentions": defaultdict(int)
