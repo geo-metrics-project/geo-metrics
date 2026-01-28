@@ -37,6 +37,7 @@ class ReportResponse(BaseModel):
 async def list_reports(
     db: Session = Depends(get_db),
     x_user_id: str = Header(...)
+):
     # Get all report IDs the user has access to via Keto
     accessible_report_ids = await get_user_accessible_reports(x_user_id)
     
@@ -53,6 +54,7 @@ async def get_report(
     report_id: int,
     db: Session = Depends(get_db),
     x_user_id: str = Header(...)
+):
     # Check access via Keto
     has_access = await check_access(x_user_id, report_id, "view")
     if not has_access:
@@ -92,6 +94,7 @@ async def get_report_llm_responses(
     report_id: int,
     db: Session = Depends(get_db),
     x_user_id: str = Header(...)
+):
     # Check access via Keto
     has_access = await check_access(x_user_id, report_id, "view")
     if not has_access:
@@ -120,6 +123,7 @@ async def share_report(
     request: ShareReportRequest,
     db: Session = Depends(get_db),
     x_user_id: str = Header(...)
+):
     """Share a report with another user by email"""
     # Check owner access via Keto
     is_owner = await check_access(x_user_id, report_id, "owner")
@@ -144,6 +148,7 @@ async def get_shared_users(
     report_id: int,
     db: Session = Depends(get_db),
     x_user_id: str = Header(...)
+):
     """Get list of users who have access to this report"""
     # Check owner access via Keto
     is_owner = await check_access(x_user_id, report_id, "owner")
@@ -180,6 +185,7 @@ async def unshare_report(
     request: ShareReportRequest,
     db: Session = Depends(get_db),
     x_user_id: str = Header(...)
+):
     """Revoke access to a shared report"""
     # Check owner access via Keto
     is_owner = await check_access(x_user_id, report_id, "owner")
