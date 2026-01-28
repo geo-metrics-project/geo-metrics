@@ -11,7 +11,6 @@ from database import get_db
 from services.report_generator import ReportGenerator
 from deep_translator import GoogleTranslator
 from clients.keto_client import create_owner_relationship
-from clients.kratos_client import get_user_email
 
 logger = logging.getLogger(__name__)
 LLM_SERVICE_URL = os.getenv("LLM_SERVICE_URL", "http://llm-service:8081")
@@ -143,14 +142,11 @@ async def analyze_brand(
             )
 
     # Step 4: Store/transmit only llm_responses
-    # Get owner email from Kratos
-    owner_email = await get_user_email(x_user_id)
-    
+
     generator = ReportGenerator(db)
     report = generator.generate_report(
         brand_name=request.brand_name,
         user_id=x_user_id,
-        owner_email=owner_email,
         competitor_names=request.competitor_names,
         llm_responses=llm_responses
     )

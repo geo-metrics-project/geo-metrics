@@ -19,13 +19,12 @@ class ReportGenerator:
         kpis["competitor_mentions"] = {comp: (comp.lower() in text) for comp in competitor_names}
         return kpis
 
-    def generate_report(self, brand_name: str, user_id: str, owner_email: str, llm_responses: list, competitor_names: Optional[List[str]] = None):
-        # Create the report object (no kpis at report level)
+    def generate_report(self, brand_name: str, user_id: str, llm_responses: list, competitor_names: Optional[List[str]] = None):
+        # Create the report object
         report = Report(
             brand_name=brand_name,
             competitor_names=competitor_names,
-            user_id=user_id,
-            owner_email=owner_email
+            user_id=user_id
         )
         self.db.add(report)
         self.db.flush()  # Get report.id

@@ -13,8 +13,6 @@ class Report(Base):
     brand_name = Column(String(255), nullable=False)
     competitor_names = Column(ARRAY(Text), nullable=True)
     user_id = Column(String(255), nullable=False)  # Kratos UUID
-    owner_email = Column(String(255), nullable=False)  # Owner's email from Kratos
-    # kpis field removed; now stored in LLMResponse
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
@@ -27,7 +25,6 @@ class Report(Base):
             "brand_name": self.brand_name,
             "competitor_names": self.competitor_names or [],
             "user_id": self.user_id,
-            "owner_email": self.owner_email,
             "created_at": self.created_at.isoformat() if self.created_at is not None else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at is not None else None
         }
