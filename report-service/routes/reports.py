@@ -137,6 +137,7 @@ async def get_report_kpis(
     model: str = Query(None),
     keyword: str = Query(None),
     prompt_template: str = Query(None),
+    aggregate_by: str = Query(None, description="Field to aggregate by (e.g., 'region', 'language_code', 'model', 'keyword', 'prompt_template')"),
     limit: int = Query(1000, ge=1, le=10000),
     offset: int = Query(0, ge=0)
 ):
@@ -159,25 +160,61 @@ async def get_report_kpis(
     if prompt_template:
         query = query.filter(LLMResponse.prompt_template == prompt_template)
     llm_responses = query.offset(offset).limit(limit).all()
-    # Aggregate KPIs from all responses
-    aggregated = {
-        "total_responses": len(llm_responses),
-        "brand_mentioned": 0,
-        "brand_citation_with_link": 0,
-        "competitor_mentions": defaultdict(int)
-    }
-    for resp in llm_responses:
-        kpis = getattr(resp, "kpis", None)
-        if kpis and isinstance(kpis, dict):
-            aggregated["brand_mentioned"] += kpis.get("brand_mentioned", False)
-            aggregated["brand_citation_with_link"] += kpis.get("brand_citation_with_link", False)
-            comp_mentions = kpis.get("competitor_mentions", {})
-            if isinstance(comp_mentions, dict):
-                for comp, mentioned in comp_mentions.items():
-                    aggregated["competitor_mentions"][comp] += mentioned
-    # Convert defaultdict to dict
-    aggregated["competitor_mentions"] = dict(aggregated["competitor_mentions"])
-    return {"kpis": aggregated}
+    
+    if aggregate_by:
+        # Validate aggregate_by
+        valid_fields = {"region", "language_code", "model", "keyword", "prompt_template"}
+        if aggregate_by not in valid_fields:
+            raise HTTPException(status_code=400, detail=f"Invalid aggregate_by field. Must be one of: {', '.join(valid_fields)}")
+        
+        # Group responses by the specified field
+        grouped = defaultdict(list)
+        for resp in llm_responses:
+            key = getattr(resp, aggregate_by, "unknown")
+            grouped[key].append(resp)
+        
+        # Aggregate per group
+        result = {}
+        for group, resps in grouped.items():
+            agg = {
+                "total_responses": len(resps),
+                "brand_mentioned": 0,
+                "brand_citation_with_link": 0,
+                "competitor_mentions": defaultdict(int)
+            }
+            for resp in resps:
+                kpis = getattr(resp, "kpis", None)
+                if kpis and isinstance(kpis, dict):
+                    agg["brand_mentioned"] += kpis.get("brand_mentioned", False)
+                    agg["brand_citation_with_link"] += kpis.get("brand_citation_with_link", False)
+                    comp_mentions = kpis.get("competitor_mentions", {})
+                    if isinstance(comp_mentions, dict):
+                        for comp, mentioned in comp_mentions.items():
+                            agg["competitor_mentions"][comp] += mentioned
+            # Convert defaultdict to dict
+            agg["competitor_mentions"] = dict(agg["competitor_mentions"])
+            result[group] = agg
+        return {"kpis": result}
+    else:
+        # Aggregate all responses
+        aggregated = {
+            "total_responses": len(llm_responses),
+            "brand_mentioned": 0,
+            "brand_citation_with_link": 0,
+            "competitor_mentions": defaultdict(int)
+        }
+        for resp in llm_responses:
+            kpis = getattr(resp, "kpis", None)
+            if kpis and isinstance(kpis, dict):
+                aggregated["brand_mentioned"] += kpis.get("brand_mentioned", False)
+                aggregated["brand_citation_with_link"] += kpis.get("brand_citation_with_link", False)
+                comp_mentions = kpis.get("competitor_mentions", {})
+                if isinstance(comp_mentions, dict):
+                    for comp, mentioned in comp_mentions.items():
+                        aggregated["competitor_mentions"][comp] += mentioned
+        # Convert defaultdict to dict
+        aggregated["competitor_mentions"] = dict(aggregated["competitor_mentions"])
+        return {"kpis": aggregated}
 
 # Sharing endpoints
 
