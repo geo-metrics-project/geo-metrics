@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, Query
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 from pydantic import BaseModel
@@ -93,19 +93,34 @@ async def delete_report(
 async def get_report_llm_responses(
     report_id: int,
     db: Session = Depends(get_db),
-    x_user_id: str = Header(...)
+    x_user_id: str = Header(...),
+    region: str = Query(None),
+    language_code: str = Query(None),
+    model: str = Query(None),
+    keyword: str = Query(None),
+    prompt_template: str = Query(None),
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0)
 ):
     # Check access via Keto
     has_access = await check_access(x_user_id, report_id, "view")
     if not has_access:
         raise HTTPException(status_code=403, detail="Access denied")
-    
     report = db.query(Report).filter(Report.id == report_id).first()
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
-    llm_responses = db.query(LLMResponse).filter(
-        LLMResponse.report_id == report_id
-    ).all()
+    query = db.query(LLMResponse).filter(LLMResponse.report_id == report_id)
+    if region:
+        query = query.filter(LLMResponse.region == region)
+    if language_code:
+        query = query.filter(LLMResponse.language_code == language_code)
+    if model:
+        query = query.filter(LLMResponse.model == model)
+    if keyword:
+        query = query.filter(LLMResponse.keyword == keyword)
+    if prompt_template:
+        query = query.filter(LLMResponse.prompt_template == prompt_template)
+    llm_responses = query.offset(offset).limit(limit).all()
     return [resp.to_dict() for resp in llm_responses]
 
 # Sharing endpoints
