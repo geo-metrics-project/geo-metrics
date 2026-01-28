@@ -14,7 +14,7 @@ class Report(Base):
     competitor_names = Column(ARRAY(Text), nullable=True)
     user_id = Column(String(255), nullable=False)  # Kratos UUID
     owner_email = Column(String(255), nullable=False)  # Owner's email from Kratos
-    kpis = Column(JSONB, default=dict)
+    # kpis field removed; now stored in LLMResponse
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
@@ -28,7 +28,6 @@ class Report(Base):
             "competitor_names": self.competitor_names or [],
             "user_id": self.user_id,
             "owner_email": self.owner_email,
-            "kpis": self.kpis or {},
             "created_at": self.created_at.isoformat() if self.created_at is not None else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at is not None else None
         }
@@ -46,6 +45,7 @@ class LLMResponse(Base):
     model = Column(String(255), nullable=False)
     prompt_text = Column(Text, nullable=False)
     response = Column(Text, nullable=False)
+    kpis = Column(JSONB, default=dict)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationship back to report
@@ -62,5 +62,6 @@ class LLMResponse(Base):
             "model": self.model,
             "prompt_text": self.prompt_text,
             "response": self.response,
+            "kpis": self.kpis or {},
             "created_at": self.created_at.isoformat() if self.created_at is not None else None
         }

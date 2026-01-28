@@ -22,6 +22,7 @@ class LLMResponseOut(BaseModel):
     model: str
     prompt_text: str
     response: str
+    kpis: dict
     created_at: str
 
 class ReportResponse(BaseModel):
@@ -30,7 +31,6 @@ class ReportResponse(BaseModel):
     competitor_names: List[str]
     user_id: str
     owner_email: str
-    kpis: Dict[str, Any]
     created_at: str
     updated_at: str
 
