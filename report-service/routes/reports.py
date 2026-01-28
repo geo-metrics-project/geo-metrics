@@ -33,6 +33,16 @@ class ReportResponse(BaseModel):
     created_at: str
     updated_at: str
 
+# KPIs aggregation response model
+class AggregatedKPIsResponse(BaseModel):
+    metadata: Dict[str, Any]
+    kpis: Dict[str, Any]
+
+# LLM responses list response model
+class LLMResponsesList(BaseModel):
+    metadata: Dict[str, Any]
+    responses: List[LLMResponseOut]
+
 @router.get("", response_model=List[ReportResponse])
 async def list_reports(
     db: Session = Depends(get_db),
@@ -89,7 +99,7 @@ async def delete_report(
     
     return None
 
-@router.get("/{report_id}/llm-responses", response_model=List[LLMResponseOut])
+@router.get("/{report_id}/llm-responses", response_model=LLMResponsesList)
 async def get_report_llm_responses(
     report_id: int,
     db: Session = Depends(get_db),
@@ -120,12 +130,33 @@ async def get_report_llm_responses(
         query = query.filter(LLMResponse.keyword == keyword)
     if prompt_template:
         query = query.filter(LLMResponse.prompt_template == prompt_template)
+    
+    # Get total count for metadata
+    total_count = query.count()
+    
     llm_responses = query.offset(offset).limit(limit).all()
-    return [resp.to_dict() for resp in llm_responses]
-
-# KPIs aggregation response model
-class AggregatedKPIsResponse(BaseModel):
-    kpis: Dict[str, Any]
+    
+    # Build applied filters metadata
+    applied_filters = {}
+    if region:
+        applied_filters["region"] = region
+    if language_code:
+        applied_filters["language_code"] = language_code
+    if model:
+        applied_filters["model"] = model
+    if keyword:
+        applied_filters["keyword"] = keyword
+    if prompt_template:
+        applied_filters["prompt_template"] = prompt_template
+    
+    metadata = {
+        "total_count": total_count,
+        "limit": limit,
+        "offset": offset,
+        "applied_filters": applied_filters
+    }
+    
+    return {"metadata": metadata, "responses": [resp.to_dict() for resp in llm_responses]}
 
 @router.get("/{report_id}/kpis", response_model=AggregatedKPIsResponse)
 async def get_report_kpis(
@@ -161,6 +192,27 @@ async def get_report_kpis(
         query = query.filter(LLMResponse.prompt_template == prompt_template)
     llm_responses = query.offset(offset).limit(limit).all()
     
+    # Build applied filters metadata
+    applied_filters = {}
+    if region:
+        applied_filters["region"] = region
+    if language_code:
+        applied_filters["language_code"] = language_code
+    if model:
+        applied_filters["model"] = model
+    if keyword:
+        applied_filters["keyword"] = keyword
+    if prompt_template:
+        applied_filters["prompt_template"] = prompt_template
+    
+    metadata = {
+        "total_responses_aggregated": len(llm_responses),
+        "limit": limit,
+        "offset": offset,
+        "applied_filters": applied_filters,
+        "aggregated_by": aggregate_by
+    }
+    
     if aggregate_by:
         # Validate aggregate_by
         valid_fields = {"region", "language_code", "model", "keyword", "prompt_template"}
@@ -194,7 +246,7 @@ async def get_report_kpis(
             # Convert defaultdict to dict
             agg["competitor_mentions"] = dict(agg["competitor_mentions"])
             result[group] = agg
-        return {"kpis": result}
+        return {"metadata": metadata, "kpis": result}
     else:
         # Aggregate all responses
         aggregated = {
@@ -214,7 +266,7 @@ async def get_report_kpis(
                         aggregated["competitor_mentions"][comp] += mentioned
         # Convert defaultdict to dict
         aggregated["competitor_mentions"] = dict(aggregated["competitor_mentions"])
-        return {"kpis": aggregated}
+        return {"metadata": metadata, "kpis": aggregated}
 
 # Sharing endpoints
 
