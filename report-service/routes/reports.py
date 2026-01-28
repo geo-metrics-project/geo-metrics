@@ -7,6 +7,7 @@ from models.report_model import Report, LLMResponse
 from clients.keto_client import grant_view_access, revoke_access, delete_all_relationships, get_user_accessible_reports, check_access, get_report_viewers
 from clients.kratos_client import lookup_user_by_email, get_user_email
 import logging
+from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 
@@ -122,6 +123,61 @@ async def get_report_llm_responses(
         query = query.filter(LLMResponse.prompt_template == prompt_template)
     llm_responses = query.offset(offset).limit(limit).all()
     return [resp.to_dict() for resp in llm_responses]
+
+# KPIs aggregation response model
+class AggregatedKPIsResponse(BaseModel):
+    kpis: Dict[str, Any]
+
+@router.get("/{report_id}/kpis", response_model=AggregatedKPIsResponse)
+async def get_report_kpis(
+    report_id: int,
+    db: Session = Depends(get_db),
+    x_user_id: str = Header(...),
+    region: str = Query(None),
+    language_code: str = Query(None),
+    model: str = Query(None),
+    keyword: str = Query(None),
+    prompt_template: str = Query(None),
+    limit: int = Query(1000, ge=1, le=10000),
+    offset: int = Query(0, ge=0)
+):
+    # Check access via Keto
+    has_access = await check_access(x_user_id, report_id, "view")
+    if not has_access:
+        raise HTTPException(status_code=403, detail="Access denied")
+    report = db.query(Report).filter(Report.id == report_id).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+    query = db.query(LLMResponse).filter(LLMResponse.report_id == report_id)
+    if region:
+        query = query.filter(LLMResponse.region == region)
+    if language_code:
+        query = query.filter(LLMResponse.language_code == language_code)
+    if model:
+        query = query.filter(LLMResponse.model == model)
+    if keyword:
+        query = query.filter(LLMResponse.keyword == keyword)
+    if prompt_template:
+        query = query.filter(LLMResponse.prompt_template == prompt_template)
+    llm_responses = query.offset(offset).limit(limit).all()
+    # Aggregate KPIs from all responses
+    aggregated = {
+        "brand_mentioned": 0,
+        "brand_citation_with_link": 0,
+        "competitor_mentions": defaultdict(int)
+    }
+    for resp in llm_responses:
+        kpis = getattr(resp, "kpis", None)
+        if kpis and isinstance(kpis, dict):
+            aggregated["brand_mentioned"] += kpis.get("brand_mentioned", False)
+            aggregated["brand_citation_with_link"] += kpis.get("brand_citation_with_link", False)
+            comp_mentions = kpis.get("competitor_mentions", {})
+            if isinstance(comp_mentions, dict):
+                for comp, mentioned in comp_mentions.items():
+                    aggregated["competitor_mentions"][comp] += mentioned
+    # Convert defaultdict to dict
+    aggregated["competitor_mentions"] = dict(aggregated["competitor_mentions"])
+    return {"kpis": aggregated}
 
 # Sharing endpoints
 
