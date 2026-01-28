@@ -38,15 +38,17 @@ primary:
         -- User and database are created automatically by Bitnami Helm chart
         -- This script only creates tables and indexes
         
-        -- Reports table (user_id references Ory Kratos identity)
+        -- Reports table (ownership handled by Ory Keto)
         CREATE TABLE IF NOT EXISTS reports (
             id SERIAL PRIMARY KEY,
             brand_name VARCHAR(255) NOT NULL,
             competitor_names TEXT[],
-            user_id VARCHAR(255) NOT NULL,  -- Kratos UUID
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
+        
+        -- Drop user_id column if it exists (migration)
+        ALTER TABLE reports DROP COLUMN IF EXISTS user_id;
         
         -- Index for JSONB queries on KPIs
         CREATE INDEX IF NOT EXISTS idx_reports_kpis ON reports USING GIN (kpis);

@@ -30,7 +30,6 @@ class ReportResponse(BaseModel):
     id: int
     brand_name: str
     competitor_names: List[str]
-    user_id: str
     created_at: str
     updated_at: str
 

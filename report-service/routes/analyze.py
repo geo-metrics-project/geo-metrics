@@ -146,7 +146,6 @@ async def analyze_brand(
     generator = ReportGenerator(db)
     report = generator.generate_report(
         brand_name=request.brand_name,
-        user_id=x_user_id,
         competitor_names=request.competitor_names,
         llm_responses=llm_responses
     )
