@@ -5,11 +5,14 @@ import { ArrowRight, Target, Users, Search, FileText, Sparkles, MapPin, Phone, M
 
 export default function CreateReportPage() {
   const [form, setForm] = useState({ 
-    name: '', 
-    address: '', 
-    phone: '', 
-    email: '', 
-    keywords: '' 
+    website: '',
+    businessName: '',
+    industry: '',
+    geographicScope: 'local',
+    mainKeywords: '',
+    competitors: '',
+    language: 'fr',
+    auditType: 'complete'
   });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<null | { ok: boolean; id?: string; message?: string }>(null);
@@ -32,7 +35,7 @@ export default function CreateReportPage() {
       if (res.ok) {
         const data = await res.json();
         setResult({ ok: true, id: data.id });
-        setForm({ name: '', address: '', phone: '', email: '', keywords: '' });
+        setForm({ website: '', businessName: '', industry: '', geographicScope: 'local', mainKeywords: '', competitors: '', language: 'fr', auditType: 'complete' });
       } else {
         const text = await res.text();
         setResult({ ok: false, message: text });
@@ -87,15 +90,46 @@ export default function CreateReportPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div className="space-y-2">
                       <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                        <Users className="w-4 h-4 text-indigo-500" />
-                        Nom de l'entreprise *
+                        <Globe className="w-4 h-4 text-indigo-500" />
+                        URL du site/page *
                       </label>
                       <input
-                        name="name"
-                        value={form.name}
+                        name="website"
+                        value={form.website}
                         onChange={handleChange}
                         required
-                        placeholder="Ex: Chauffage Pro Paris"
+                        type="url"
+                        placeholder="https://monsite.com"
+                        className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                        <Target className="w-4 h-4 text-indigo-500" />
+                        Nom de l'entreprise/site *
+                      </label>
+                      <input
+                        name="businessName"
+                        value={form.businessName}
+                        onChange={handleChange}
+                        required
+                        placeholder="Ex: Mon Entreprise"
+                        className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                        <Zap className="w-4 h-4 text-indigo-500" />
+                        Secteur d'activité *
+                      </label>
+                      <input
+                        name="industry"
+                        value={form.industry}
+                        onChange={handleChange}
+                        required
+                        placeholder="Ex: E-commerce, SaaS, Services..."
                         className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                       />
                     </div>
@@ -103,63 +137,96 @@ export default function CreateReportPage() {
                     <div className="space-y-2">
                       <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
                         <MapPin className="w-4 h-4 text-indigo-500" />
-                        Adresse (ville, rue)
+                        Portée géographique *
                       </label>
-                      <input
-                        name="address"
-                        value={form.address}
-                        onChange={handleChange}
-                        placeholder="Ex: 123 Avenue des Champs, Paris"
+                      <select
+                        name="geographicScope"
+                        value={form.geographicScope}
+                        onChange={handleChange as any}
                         className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                        <Phone className="w-4 h-4 text-indigo-500" />
-                        Téléphone
-                      </label>
-                      <input
-                        name="phone"
-                        value={form.phone}
-                        onChange={handleChange}
-                        placeholder="Ex: 01 23 45 67 89"
-                        className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                        <Mail className="w-4 h-4 text-indigo-500" />
-                        Email
-                      </label>
-                      <input
-                        name="email"
-                        type="email"
-                        value={form.email}
-                        onChange={handleChange}
-                        placeholder="contact@entreprise.fr"
-                        className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                      />
+                      >
+                        <option value="local">Local (ville/région)</option>
+                        <option value="national">National</option>
+                        <option value="international">International</option>
+                        <option value="multi-regional">Multi-régional</option>
+                      </select>
                     </div>
                   </div>
 
-                  <div className="space-y-2 mb-8">
+                  <div className="space-y-2 mb-6">
                     <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
                       <Key className="w-4 h-4 text-purple-500" />
-                      Mots-clés / services (pour l'analyse Share of Voice)
+                      Mots-clés principaux à auditer *
                     </label>
                     <textarea
-                      name="keywords"
-                      value={form.keywords}
+                      name="mainKeywords"
+                      value={form.mainKeywords}
                       onChange={handleChange}
-                      rows={4}
-                      placeholder="Ex: plomberie, chauffage, réparation urgente, dépannage 24/7, artisan local..."
+                      rows={3}
+                      required
+                      placeholder="Ex: plomberie Paris, plombier urgent, fuite d'eau, chauffage, dépannage 24/7..."
                       className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                     />
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                      Séparez les mots-clés par des virgules. Nous analyserons votre mention par rapport aux concurrents sur ces termes.
+                      Séparez les mots-clés par des virgules. Focus sur vos mots-clés principaux pour la visibilité IA.
                     </p>
+                  </div>
+
+                  <div className="space-y-2 mb-6">
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                      <Users className="w-4 h-4 text-purple-500" />
+                      Compétiteurs directs
+                    </label>
+                    <textarea
+                      name="competitors"
+                      value={form.competitors}
+                      onChange={handleChange}
+                      rows={2}
+                      placeholder="Ex: competitor1.com, competitor2.com, competitor3.com..."
+                      className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    />
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                      URLs de vos 2-4 principaux concurrents (optionnel). Utilisé pour le benchmarking.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                        <Globe className="w-4 h-4 text-indigo-500" />
+                        Langue d'audit
+                      </label>
+                      <select
+                        name="language"
+                        value={form.language}
+                        onChange={handleChange as any}
+                        className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                      >
+                        <option value="fr">Français</option>
+                        <option value="en">Anglais</option>
+                        <option value="es">Espagnol</option>
+                        <option value="de">Allemand</option>
+                        <option value="it">Italien</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                        <ChartBar className="w-4 h-4 text-indigo-500" />
+                        Type d'audit
+                      </label>
+                      <select
+                        name="auditType"
+                        value={form.auditType}
+                        onChange={handleChange as any}
+                        className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                      >
+                        <option value="complete">Audit complet (recommandé)</option>
+                        <option value="quick">Audit rapide</option>
+                        <option value="competitive">Analyse concurrentielle</option>
+                        <option value="kpi-focused">Focus KPI spécifiques</option>
+                      </select>
+                    </div>
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-4 items-center justify-between p-6 bg-gradient-to-r from-indigo-50/50 to-purple-50/50 dark:from-indigo-900/10 dark:to-purple-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-800/30">
@@ -178,13 +245,14 @@ export default function CreateReportPage() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setForm({ name: '', address: '', phone: '', email: '', keywords: '' })}
-                        className="px-6 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 font-semibold hover:border-gray-300 dark:hover:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
-                      >
-                        Réinitialiser
-                      </button>
+                      <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30">
+                        <button
+                          type="button"
+                          onClick={() => setForm({ website: '', businessName: '', industry: '', geographicScope: 'local', mainKeywords: '', competitors: '', language: 'fr', auditType: 'complete' })}
+                          className="px-6 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 font-semibold hover:border-gray-300 dark:hover:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
+                        >
+                          Réinitialiser
+                        </button>
                       <button
                         disabled={loading}
                         className="group relative overflow-hidden px-8 py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed"
@@ -251,26 +319,26 @@ export default function CreateReportPage() {
                 </div>
 
                 <div className="space-y-5">
-                  {/* GEO Score */}
+                  {/* GEO Visibility Score */}
                   <div className="p-4 bg-white/70 dark:bg-gray-800/50 rounded-xl border border-indigo-100 dark:border-indigo-800/30">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30">
-                        <TrendingUp className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                        <Eye className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-center">
-                          <span className="font-semibold text-gray-900 dark:text-white">GEO Score</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">GEO Visibility Score</span>
                           <span className="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                            78/100
+                            67/100
                           </span>
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          Score synthétique de visibilité hybride
+                          Visibilité globale sur les moteurs IA (ChatGPT, Gemini, Perplexity)
                         </p>
                       </div>
                     </div>
                     <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mt-2">
-                      <div className="h-full w-3/4 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+                      <div className="h-full w-2/3 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
                     </div>
                   </div>
 
@@ -278,30 +346,30 @@ export default function CreateReportPage() {
                   <div className="p-4 bg-white/70 dark:bg-gray-800/50 rounded-xl border border-indigo-100 dark:border-indigo-800/30">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30">
-                        <MessageSquare className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                        <BarChart className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-center">
-                          <span className="font-semibold text-gray-900 dark:text-white">Share of Voice</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">Share of Voice (SOV)</span>
                           <span className="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                            24%
+                            18%
                           </span>
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          Part des citations dans les réponses IA
+                          Part de voix vs compétiteurs sur vos mots-clés
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
-                      <span>Votre marque</span>
-                      <span>Concurrents</span>
+                      <span>Vous</span>
+                      <span>Compétiteurs</span>
                     </div>
                     <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                      <div className="h-full w-1/4 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+                      <div className="h-full w-1/5 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
                     </div>
                   </div>
 
-                  {/* Citation Rate */}
+                  {/* Citation Rate across AI engines */}
                   <div className="p-4 bg-white/70 dark:bg-gray-800/50 rounded-xl border border-indigo-100 dark:border-indigo-800/30">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30">
@@ -309,59 +377,82 @@ export default function CreateReportPage() {
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-center">
-                          <span className="font-semibold text-gray-900 dark:text-white">Citation Rate</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">Citation Rate (Moyen)</span>
                           <span className="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                            68%
+                            52%
                           </span>
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          Taux de citations spontanées par les IA
+                          Taux moyen de citations spontanées par les IA
                         </p>
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2 mt-2">
                       <div className="text-center p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-                        <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400">82%</div>
+                        <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400">68%</div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">ChatGPT</div>
                       </div>
                       <div className="text-center p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                        <div className="text-sm font-bold text-purple-600 dark:text-purple-400">61%</div>
+                        <div className="text-sm font-bold text-purple-600 dark:text-purple-400">45%</div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">Gemini</div>
                       </div>
                       <div className="text-center p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-                        <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400">73%</div>
+                        <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400">43%</div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">Perplexity</div>
                       </div>
                     </div>
                   </div>
 
-                  {/* NAP Consistency */}
+                  {/* Average Position */}
                   <div className="p-4 bg-white/70 dark:bg-gray-800/50 rounded-xl border border-indigo-100 dark:border-indigo-800/30">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30">
-                        <Shield className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                        <TrendingUp className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-center">
-                          <span className="font-semibold text-gray-900 dark:text-white">NAP Consistency</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">Position Moyenne</span>
                           <span className="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                            94%
+                            3.2
                           </span>
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          Cohérence Nom/Adresse/Téléphone
+                          Position moyenne dans les réponses IA (1ère = meilleur)
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 mt-2">
-                      <div className="flex-1">
-                        <div className="flex justify-between text-xs mb-1">
-                          <span className="text-gray-600 dark:text-gray-400">Sources vérifiées</span>
-                          <span className="font-medium">42/45</span>
-                        </div>
-                        <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                          <div className="h-full w-[93%] bg-gradient-to-r from-green-500 to-emerald-500"></div>
-                        </div>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <div className="text-center p-2 bg-gray-50 dark:bg-gray-800/70 rounded-lg">
+                        <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Mention 1ère</div>
+                        <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400">23%</div>
+                      </div>
+                      <div className="text-center p-2 bg-gray-50 dark:bg-gray-800/70 rounded-lg">
+                        <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Dans top 3</div>
+                        <div className="text-sm font-bold text-purple-600 dark:text-purple-400">61%</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Knowledge Panel & Featured Snippet */}
+                  <div className="p-4 bg-white/70 dark:bg-gray-800/50 rounded-xl border border-indigo-100 dark:border-indigo-800/30">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30">
+                        <Shield className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                      </div>
+                      <span className="font-semibold text-gray-900 dark:text-white">SERP Features</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800/70 rounded-lg">
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Featured Snippet</span>
+                        <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">8 occurrences</span>
+                      </div>
+                      <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800/70 rounded-lg">
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Knowledge Panel</span>
+                        <span className="text-sm font-bold text-purple-600 dark:text-purple-400">Détecté ✓</span>
+                      </div>
+                      <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800/70 rounded-lg">
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Answer Box</span>
+                        <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">3 occurrences</span>
                       </div>
                     </div>
                   </div>
@@ -370,10 +461,10 @@ export default function CreateReportPage() {
                 <div className="mt-6 p-4 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-xl border border-indigo-100 dark:border-indigo-800/20">
                   <div className="flex items-center gap-2 mb-2">
                     <Award className="w-4 h-4 text-purple-500" />
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Benchmarking concurrentiel</span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Analyse complète</span>
                   </div>
                   <p className="text-xs text-gray-600 dark:text-gray-400">
-                    Votre rapport inclut une analyse comparative avec 3 concurrents directs sur vos mots-clés cibles.
+                    Rapport incluant visibilité IA, SOV, citation rates sur ChatGPT, Gemini, Perplexity, Featured Snippets, Knowledge Panels, et recommandations d'optimisation.
                   </p>
                 </div>
               </div>
@@ -387,8 +478,8 @@ export default function CreateReportPage() {
                       1
                     </div>
                     <div>
-                      <p className="font-medium text-sm text-gray-900 dark:text-white">Collecte des sources</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">IA, annuaires, avis</p>
+                      <p className="font-medium text-sm text-gray-900 dark:text-white">Crawl du site</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Indexation et structure</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -396,8 +487,8 @@ export default function CreateReportPage() {
                       2
                     </div>
                     <div>
-                      <p className="font-medium text-sm text-gray-900 dark:text-white">Calcul des KPI GEO</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Share of Voice, Citation Rate</p>
+                      <p className="font-medium text-sm text-gray-900 dark:text-white">Scanning IA</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">ChatGPT, Gemini, Perplexity, etc</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -405,8 +496,8 @@ export default function CreateReportPage() {
                       3
                     </div>
                     <div>
-                      <p className="font-medium text-sm text-gray-900 dark:text-white">Validation NAP</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Cohérence cross-platform</p>
+                      <p className="font-medium text-sm text-gray-900 dark:text-white">Calcul KPI GEO</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">SOV, Citation Rate, Position</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -414,8 +505,17 @@ export default function CreateReportPage() {
                       4
                     </div>
                     <div>
-                      <p className="font-medium text-sm text-gray-900 dark:text-white">Recommandations</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Plan d'action personnalisé</p>
+                      <p className="font-medium text-sm text-gray-900 dark:text-white">Analyse concurrentielle</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Benchmarking vs compétiteurs</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs">
+                      5
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm text-gray-900 dark:text-white">Plan d'action</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Recommandations d'optimisation</p>
                     </div>
                   </div>
                 </div>

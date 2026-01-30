@@ -38,23 +38,19 @@ primary:
         -- User and database are created automatically by Bitnami Helm chart
         -- This script only creates tables and indexes
         
-        -- Reports table (user_id references Ory Kratos identity)
+        -- Reports table (ownership handled by Ory Keto)
         CREATE TABLE IF NOT EXISTS reports (
             id SERIAL PRIMARY KEY,
             brand_name VARCHAR(255) NOT NULL,
             competitor_names TEXT[],
-            user_id VARCHAR(255) NOT NULL,  -- Kratos UUID
-            owner_email VARCHAR(255) NOT NULL,  -- Owner's email from Kratos
-            
-            -- Flexible KPI storage (add/remove metrics without schema changes)
-            kpis JSONB DEFAULT '{}'::jsonb,
-            
+            models TEXT[] NOT NULL,
+            keywords TEXT[] NOT NULL,
+            regions TEXT[] NOT NULL,
+            languages TEXT[] NOT NULL,
+            prompt_templates TEXT[] NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
-        
-        -- Index for JSONB queries on KPIs
-        CREATE INDEX IF NOT EXISTS idx_reports_kpis ON reports USING GIN (kpis);
         
         -- Store raw LLM responses for each unique combination
         CREATE TABLE IF NOT EXISTS llm_responses (
@@ -67,6 +63,8 @@ primary:
             model VARCHAR(255) NOT NULL,
             prompt_text TEXT NOT NULL,
             response TEXT NOT NULL,
+            -- Flexible KPI storage (add/remove metrics without schema changes)
+            kpis JSONB DEFAULT '{}'::jsonb,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         

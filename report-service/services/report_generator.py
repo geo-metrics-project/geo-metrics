@@ -7,70 +7,35 @@ class ReportGenerator:
     def __init__(self, db: Session):
         self.db = db
 
-    def calculate_kpis(self, brand_name: str, competitor_names: List[str], llm_responses: list) -> dict:
-        """Calculate KPIs from LLM responses"""
-        total_responses = len(llm_responses)
-        if total_responses == 0:
-            return {}
-        
-        brand_mentions = 0
-        brand_with_link = 0
-        competitor_mentions = {comp: 0 for comp in competitor_names}
-        
-        for resp in llm_responses:
-            response_text = resp.get("response", "").lower()
-            
-            # Check if brand name is mentioned
-            if brand_name.lower() in response_text:
-                brand_mentions += 1
-                
-                # Check if response contains a link (http/https)
-                if re.search(r'https?://', response_text):
-                    brand_with_link += 1
-            
-            # Count competitor mentions
-            for competitor in competitor_names:
-                if competitor.lower() in response_text:
-                    competitor_mentions[competitor] += 1
-        
-        # Calculate percentages
-        brand_mention_percentage = (brand_mentions / total_responses) * 100 if total_responses > 0 else 0
-        
-        # Share of voice: brand mentions / (brand mentions + all competitor mentions)
-        total_competitor_mentions = sum(competitor_mentions.values())
-        total_mentions = brand_mentions + total_competitor_mentions
-        share_of_voice = (brand_mentions / total_mentions) * 100 if total_mentions > 0 else 0
-        
-        # Citation rate: responses with brand mention AND link
-        citation_rate = (brand_with_link / total_responses) * 100 if total_responses > 0 else 0
-        
-        return {
-            "brand_mention_percentage": round(brand_mention_percentage, 2),
-            "share_of_voice": round(share_of_voice, 2),
-            "citation_rate": round(citation_rate, 2),
-            "total_responses": total_responses,
-            "brand_mentions": brand_mentions,
-            "brand_citations_with_link": brand_with_link,
-            "competitor_mentions": competitor_mentions
-        }
+    def calculate_kpis(self, brand_name: str, competitor_names: List[str], response_text: str) -> dict:
+        """Calculate KPIs for a single LLM response"""
+        kpis = {}
+        text = response_text.lower()
+        # Brand mention
+        kpis["brand_mentioned"] = brand_name.lower() in text
+        # Brand citation (with link)
+        kpis["brand_citation_with_link"] = kpis["brand_mentioned"] and bool(re.search(r'https?://', text))
+        # Competitor mentions
+        kpis["competitor_mentions"] = {comp: (comp.lower() in text) for comp in competitor_names}
+        return kpis
 
-    def generate_report(self, brand_name: str, user_id: str, owner_email: str, llm_responses: list, competitor_names: Optional[List[str]] = None):
-        # Calculate KPIs
-        kpis = self.calculate_kpis(brand_name, competitor_names or [], llm_responses)
-        
+    def generate_report(self, brand_name: str, llm_responses: list, competitor_names: Optional[List[str]] = None, models: Optional[List[str]] = None, keywords: Optional[List[str]] = None, regions: Optional[List[str]] = None, languages: Optional[List[str]] = None, prompt_templates: Optional[List[str]] = None):
         # Create the report object
         report = Report(
             brand_name=brand_name,
             competitor_names=competitor_names,
-            user_id=user_id,
-            owner_email=owner_email,
-            kpis=kpis
+            models=models,
+            keywords=keywords,
+            regions=regions,
+            languages=languages,
+            prompt_templates=prompt_templates
         )
         self.db.add(report)
         self.db.flush()  # Get report.id
 
-        # Add LLM responses
+        # Add LLM responses with kpis
         for resp in llm_responses:
+            kpis = self.calculate_kpis(brand_name, competitor_names or [], resp.get("response", ""))
             llm_response = LLMResponse(
                 report_id=report.id,
                 prompt_template=resp.get("prompt_template", ""),
@@ -79,7 +44,8 @@ class ReportGenerator:
                 keyword=resp.get("keyword", ""),
                 model=resp.get("model", ""),
                 prompt_text=resp.get("prompt_text", ""),
-                response=resp.get("response", "")
+                response=resp.get("response", ""),
+                kpis=kpis
             )
             self.db.add(llm_response)
 

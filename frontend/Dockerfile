@@ -11,6 +11,8 @@ RUN npm ci
 
 # Copy application files
 COPY . .
+ARG NEXT_PUBLIC_KRATOS_URL
+ENV NEXT_PUBLIC_KRATOS_URL=$NEXT_PUBLIC_KRATOS_URL
 RUN npm run build
 
 # Change ownership to non-root user

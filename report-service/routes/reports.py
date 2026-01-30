@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, Query
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 from pydantic import BaseModel
@@ -7,6 +7,7 @@ from models.report_model import Report, LLMResponse
 from clients.keto_client import grant_view_access, revoke_access, delete_all_relationships, get_user_accessible_reports, check_access, get_report_viewers
 from clients.kratos_client import lookup_user_by_email, get_user_email
 import logging
+from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 
@@ -22,17 +23,30 @@ class LLMResponseOut(BaseModel):
     model: str
     prompt_text: str
     response: str
+    kpis: dict
     created_at: str
 
 class ReportResponse(BaseModel):
     id: int
     brand_name: str
     competitor_names: List[str]
-    user_id: str
-    owner_email: str
-    kpis: Dict[str, Any]
+    models: List[str]
+    keywords: List[str]
+    regions: List[str]
+    languages: List[str]
+    prompt_templates: List[str]
     created_at: str
     updated_at: str
+
+# KPIs aggregation response model
+class AggregatedKPIsResponse(BaseModel):
+    metadata: Dict[str, Any]
+    kpis: Dict[str, Any]
+
+# LLM responses list response model
+class LLMResponsesList(BaseModel):
+    metadata: Dict[str, Any]
+    responses: List[LLMResponseOut]
 
 @router.get("", response_model=List[ReportResponse])
 async def list_reports(
@@ -90,24 +104,174 @@ async def delete_report(
     
     return None
 
-@router.get("/{report_id}/llm-responses", response_model=List[LLMResponseOut])
+@router.get("/{report_id}/llm-responses", response_model=LLMResponsesList)
 async def get_report_llm_responses(
     report_id: int,
     db: Session = Depends(get_db),
-    x_user_id: str = Header(...)
+    x_user_id: str = Header(...),
+    region: str = Query(None),
+    language_code: str = Query(None),
+    model: str = Query(None),
+    keyword: str = Query(None),
+    prompt_template: str = Query(None),
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0)
 ):
     # Check access via Keto
     has_access = await check_access(x_user_id, report_id, "view")
     if not has_access:
         raise HTTPException(status_code=403, detail="Access denied")
-    
     report = db.query(Report).filter(Report.id == report_id).first()
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
-    llm_responses = db.query(LLMResponse).filter(
-        LLMResponse.report_id == report_id
-    ).all()
-    return [resp.to_dict() for resp in llm_responses]
+    query = db.query(LLMResponse).filter(LLMResponse.report_id == report_id)
+    if region:
+        query = query.filter(LLMResponse.region == region)
+    if language_code:
+        query = query.filter(LLMResponse.language_code == language_code)
+    if model:
+        query = query.filter(LLMResponse.model == model)
+    if keyword:
+        query = query.filter(LLMResponse.keyword == keyword)
+    if prompt_template:
+        query = query.filter(LLMResponse.prompt_template == prompt_template)
+    
+    # Get total count for metadata
+    total_count = query.count()
+    
+    llm_responses = query.offset(offset).limit(limit).all()
+    
+    # Build applied filters metadata
+    applied_filters = {}
+    if region:
+        applied_filters["region"] = region
+    if language_code:
+        applied_filters["language_code"] = language_code
+    if model:
+        applied_filters["model"] = model
+    if keyword:
+        applied_filters["keyword"] = keyword
+    if prompt_template:
+        applied_filters["prompt_template"] = prompt_template
+    
+    metadata = {
+        "total_count": total_count,
+        "limit": limit,
+        "offset": offset,
+        "applied_filters": applied_filters
+    }
+    
+    return {"metadata": metadata, "responses": [resp.to_dict() for resp in llm_responses]}
+
+@router.get("/{report_id}/kpis", response_model=AggregatedKPIsResponse)
+async def get_report_kpis(
+    report_id: int,
+    db: Session = Depends(get_db),
+    x_user_id: str = Header(...),
+    region: str = Query(None),
+    language_code: str = Query(None),
+    model: str = Query(None),
+    keyword: str = Query(None),
+    prompt_template: str = Query(None),
+    aggregate_by: str = Query(None, description="Field to aggregate by (e.g., 'region', 'language_code', 'model', 'keyword', 'prompt_template')"),
+    limit: int = Query(1000, ge=1, le=10000),
+    offset: int = Query(0, ge=0)
+):
+    # Check access via Keto
+    has_access = await check_access(x_user_id, report_id, "view")
+    if not has_access:
+        raise HTTPException(status_code=403, detail="Access denied")
+    report = db.query(Report).filter(Report.id == report_id).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+    query = db.query(LLMResponse).filter(LLMResponse.report_id == report_id)
+    if region:
+        query = query.filter(LLMResponse.region == region)
+    if language_code:
+        query = query.filter(LLMResponse.language_code == language_code)
+    if model:
+        query = query.filter(LLMResponse.model == model)
+    if keyword:
+        query = query.filter(LLMResponse.keyword == keyword)
+    if prompt_template:
+        query = query.filter(LLMResponse.prompt_template == prompt_template)
+    llm_responses = query.offset(offset).limit(limit).all()
+    
+    # Build applied filters metadata
+    applied_filters = {}
+    if region:
+        applied_filters["region"] = region
+    if language_code:
+        applied_filters["language_code"] = language_code
+    if model:
+        applied_filters["model"] = model
+    if keyword:
+        applied_filters["keyword"] = keyword
+    if prompt_template:
+        applied_filters["prompt_template"] = prompt_template
+    
+    metadata = {
+        "total_responses_aggregated": len(llm_responses),
+        "limit": limit,
+        "offset": offset,
+        "applied_filters": applied_filters,
+        "aggregated_by": aggregate_by
+    }
+    
+    if aggregate_by:
+        # Validate aggregate_by
+        valid_fields = {"region", "language_code", "model", "keyword", "prompt_template"}
+        if aggregate_by not in valid_fields:
+            raise HTTPException(status_code=400, detail=f"Invalid aggregate_by field. Must be one of: {', '.join(valid_fields)}")
+        
+        # Group responses by the specified field
+        grouped = defaultdict(list)
+        for resp in llm_responses:
+            key = getattr(resp, aggregate_by, "unknown")
+            grouped[key].append(resp)
+        
+        # Aggregate per group
+        result = {}
+        for group, resps in grouped.items():
+            agg = {
+                "total_responses": len(resps),
+                "brand_mentioned": 0,
+                "brand_citation_with_link": 0,
+                "competitor_mentions": defaultdict(int)
+            }
+            for resp in resps:
+                kpis = getattr(resp, "kpis", None)
+                if kpis and isinstance(kpis, dict):
+                    agg["brand_mentioned"] += kpis.get("brand_mentioned", False)
+                    agg["brand_citation_with_link"] += kpis.get("brand_citation_with_link", False)
+                    comp_mentions = kpis.get("competitor_mentions", {})
+                    if isinstance(comp_mentions, dict):
+                        for comp, mentioned in comp_mentions.items():
+                            agg["competitor_mentions"][comp] += mentioned
+            # Convert defaultdict to dict
+            agg["competitor_mentions"] = dict(agg["competitor_mentions"])
+            result[group] = agg
+        return {"metadata": metadata, "kpis": result}
+    else:
+        # Aggregate all responses
+        aggregated = {
+            "total_responses": len(llm_responses),
+            "brand_mentioned": 0,
+            "brand_citation_with_link": 0,
+            "competitor_mentions": defaultdict(int)
+        }
+        for resp in llm_responses:
+            kpis = getattr(resp, "kpis", None)
+            if kpis and isinstance(kpis, dict):
+                aggregated["brand_mentioned"] += kpis.get("brand_mentioned", False)
+                aggregated["brand_citation_with_link"] += kpis.get("brand_citation_with_link", False)
+                comp_mentions = kpis.get("competitor_mentions", {})
+                if isinstance(comp_mentions, dict):
+                    for comp, mentioned in comp_mentions.items():
+                        aggregated["competitor_mentions"][comp] += mentioned
+        # Convert defaultdict to dict
+        aggregated["competitor_mentions"] = dict(aggregated["competitor_mentions"])
+        return {"metadata": metadata, "kpis": aggregated}
 
 # Sharing endpoints
 
