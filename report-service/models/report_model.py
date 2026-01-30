@@ -12,6 +12,11 @@ class Report(Base):
     id = Column(Integer, primary_key=True, index=True)
     brand_name = Column(String(255), nullable=False)
     competitor_names = Column(ARRAY(Text), nullable=True)
+    models = Column(ARRAY(Text), nullable=True)
+    keywords = Column(ARRAY(Text), nullable=True)
+    regions = Column(ARRAY(Text), nullable=True)
+    languages = Column(ARRAY(Text), nullable=True)
+    prompt_templates = Column(ARRAY(Text), nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
@@ -23,6 +28,11 @@ class Report(Base):
             "id": self.id,
             "brand_name": self.brand_name,
             "competitor_names": self.competitor_names or [],
+            "models": self.models or [],
+            "keywords": self.keywords or [],
+            "regions": self.regions or [],
+            "languages": self.languages or [],
+            "prompt_templates": self.prompt_templates or [],
             "created_at": self.created_at.isoformat() if self.created_at is not None else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at is not None else None
         }

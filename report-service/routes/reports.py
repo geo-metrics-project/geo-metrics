@@ -30,6 +30,11 @@ class ReportResponse(BaseModel):
     id: int
     brand_name: str
     competitor_names: List[str]
+    models: List[str]
+    keywords: List[str]
+    regions: List[str]
+    languages: List[str]
+    prompt_templates: List[str]
     created_at: str
     updated_at: str
 

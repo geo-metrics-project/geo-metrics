@@ -43,15 +43,14 @@ primary:
             id SERIAL PRIMARY KEY,
             brand_name VARCHAR(255) NOT NULL,
             competitor_names TEXT[],
+            models TEXT[] NOT NULL,
+            keywords TEXT[] NOT NULL,
+            regions TEXT[] NOT NULL,
+            languages TEXT[] NOT NULL,
+            prompt_templates TEXT[] NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
-        
-        -- Drop user_id column if it exists (migration)
-        ALTER TABLE reports DROP COLUMN IF EXISTS user_id;
-        
-        -- Index for JSONB queries on KPIs
-        CREATE INDEX IF NOT EXISTS idx_reports_kpis ON reports USING GIN (kpis);
         
         -- Store raw LLM responses for each unique combination
         CREATE TABLE IF NOT EXISTS llm_responses (

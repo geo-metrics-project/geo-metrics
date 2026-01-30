@@ -147,7 +147,12 @@ async def analyze_brand(
     report = generator.generate_report(
         brand_name=request.brand_name,
         competitor_names=request.competitor_names,
-        llm_responses=llm_responses
+        llm_responses=llm_responses,
+        models=request.models,
+        keywords=request.keywords,
+        regions=request.regions,
+        languages=request.languages,
+        prompt_templates=request.prompt_templates
     )
     
     # Create ownership relationship in Keto
