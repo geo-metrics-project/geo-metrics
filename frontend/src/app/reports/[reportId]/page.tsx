@@ -96,7 +96,25 @@ const GlobalDashboard: React.FC = () => {
   const [showResponses, setShowResponses] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchReport = async () => {
+      try {
+        const reportRes = await fetch(`/api/reports/${reportId}`);
+        if (reportRes.ok) {
+          const reportData = await reportRes.json();
+          setReport(reportData);
+        }
+      } catch (error) {
+        console.error("Erreur fetching report", error);
+      }
+    };
+    if (reportId) {
+      fetchReport();
+    }
+  }, [reportId]); // Only fetch report metadata once
+
+  useEffect(() => {
+    const fetchKpis = async () => {
+      if (!report) return; // Wait for report to be loaded
       setLoading(true);
       try {
         const queryParams = new URLSearchParams();
@@ -111,19 +129,14 @@ const GlobalDashboard: React.FC = () => {
         queryParams.set('limit', '1000');
         queryParams.set('offset', '0');
 
-        const [reportRes, kpiRes] = await Promise.all([
-          fetch(`/api/reports/${reportId}`),
-          fetch(`/api/reports/${reportId}/kpis?${queryParams}`)
-        ]);
+        const kpiRes = await fetch(`/api/reports/${reportId}/kpis?${queryParams}`);
 
-        if (!reportRes.ok || !kpiRes.ok) {
-          throw new Error('Failed to fetch data');
+        if (!kpiRes.ok) {
+          throw new Error('Failed to fetch KPIs');
         }
 
-        const reportData = await reportRes.json();
         const kpiResponse = await kpiRes.json();
 
-        setReport(reportData);
         setKpiMetadata(kpiResponse.metadata);
 
         if (kpiResponse.metadata.aggregated_by) {
@@ -153,10 +166,10 @@ const GlobalDashboard: React.FC = () => {
         setLoading(false);
       }
     };
-    if (reportId) {
-      fetchData();
+    if (reportId && report) {
+      fetchKpis();
     }
-  }, [reportId, filters]); // Refetch when filters change
+  }, [reportId, filters, report]); // Refetch KPIs when filters change
 
   const fetchResponses = async (groupKey?: string) => {
     const key = groupKey || 'main';
