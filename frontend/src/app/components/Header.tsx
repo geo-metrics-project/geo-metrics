@@ -64,9 +64,21 @@ export default function Header() {
     window.location.href = `${baseUrl}/self-service/registration/browser`;
   };
 
-  const handleLogout = () => {
-    const baseUrl = process.env.NEXT_PUBLIC_KRATOS_URL || "https://kratos.combaldieu.fr";
-    window.location.href = `${baseUrl}/self-service/logout/browser`;
+  const handleLogout = async () => {
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_KRATOS_URL || "https://kratos.combaldieu.fr";
+      const response = await fetch(`${baseUrl}/self-service/logout/browser`, {
+        credentials: 'include',
+      });
+      if (response.ok) {
+        const data = await response.json();
+        window.location.href = data.logout_url;
+      } else {
+        console.error('Failed to initiate logout');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
