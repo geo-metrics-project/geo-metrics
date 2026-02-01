@@ -46,6 +46,24 @@ interface AggregatedKpis {
   [key: string]: KpiData;
 }
 
+interface LlmResponse {
+  id: number;
+  report_id: number;
+  prompt_template: string;
+  region: string;
+  language_code: string;
+  keyword: string;
+  model: string;
+  prompt_text: string;
+  response: string;
+  kpis: {
+    brand_mentioned: boolean;
+    competitor_mentions: { [key: string]: boolean };
+    brand_citation_with_link: boolean;
+  };
+  created_at: string;
+}
+
 interface FilterState {
   region: string;
   language: string;
@@ -73,6 +91,9 @@ const GlobalDashboard: React.FC = () => {
   const [kpiData, setKpiData] = useState<KpiData | null>(null);
   const [aggregatedKpis, setAggregatedKpis] = useState<AggregatedKpis | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [responses, setResponses] = useState<{ [key: string]: LlmResponse[] }>({});
+  const [loadingResponses, setLoadingResponses] = useState<{ [key: string]: boolean }>({});
+  const [showResponses, setShowResponses] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -136,6 +157,44 @@ const GlobalDashboard: React.FC = () => {
       fetchData();
     }
   }, [reportId, filters]); // Refetch when filters change
+
+  const fetchResponses = async (groupKey?: string) => {
+    const key = groupKey || 'main';
+    if (responses[key]) {
+      setShowResponses(prev => ({ ...prev, [key]: !prev[key] }));
+      return;
+    }
+    setLoadingResponses(prev => ({ ...prev, [key]: true }));
+    try {
+      const queryParams = new URLSearchParams();
+      if (groupKey && filters.aggregateBy !== 'none') {
+        if (filters.aggregateBy === 'language_code') queryParams.set('language_code', groupKey);
+        else if (filters.aggregateBy === 'model') queryParams.set('model', groupKey);
+        else if (filters.aggregateBy === 'region') queryParams.set('region', groupKey);
+        else if (filters.aggregateBy === 'keyword') queryParams.set('keyword', groupKey);
+        else if (filters.aggregateBy === 'prompt_template') queryParams.set('prompt_template', groupKey);
+      } else {
+        if (filters.region !== 'All') queryParams.set('region', filters.region);
+        if (filters.language !== 'All') queryParams.set('language_code', filters.language);
+        if (filters.model !== 'All') queryParams.set('model', filters.model);
+        if (filters.keyword !== 'All') queryParams.set('keyword', filters.keyword);
+        if (filters.prompt_templates !== 'All') queryParams.set('prompt_template', filters.prompt_templates);
+      }
+      queryParams.set('limit', '100');
+      queryParams.set('offset', '0');
+
+      const res = await fetch(`/api/reports/${reportId}/llm-responses?${queryParams}`);
+      if (res.ok) {
+        const data = await res.json();
+        setResponses(prev => ({ ...prev, [key]: data.responses }));
+        setShowResponses(prev => ({ ...prev, [key]: true }));
+      }
+    } catch (error) {
+      console.error('Error fetching responses', error);
+    } finally {
+      setLoadingResponses(prev => ({ ...prev, [key]: false }));
+    }
+  };
 
   const pieData: ChartData<'pie'> = {
     labels: [report?.brand_name || 'Brand', ...Object.keys(kpiData?.competitor_mentions || {})],
@@ -265,6 +324,37 @@ const GlobalDashboard: React.FC = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Raw Responses */}
+                  <div className="mt-8">
+                    <button
+                      onClick={() => fetchResponses(key)}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                      {loadingResponses[key] ? 'Loading...' : showResponses[key] ? 'Hide Raw Responses' : 'View Raw Responses'}
+                    </button>
+                    {showResponses[key] && responses[key] && (
+                      <div className="mt-4 space-y-4 max-h-96 overflow-y-auto">
+                        {responses[key].map(resp => (
+                          <div key={resp.id} className="bg-slate-50 dark:bg-slate-700 p-4 rounded-lg">
+                            <div className="text-sm text-slate-600 dark:text-slate-400 mb-2">
+                              <strong>Model:</strong> {resp.model} | <strong>Region:</strong> {resp.region} | <strong>Language:</strong> {resp.language_code} | <strong>Keyword:</strong> {resp.keyword} | <strong>Prompt Template:</strong> {resp.prompt_template}
+                            </div>
+                            <div className="mb-2">
+                              <strong>Prompt:</strong> <span className="text-slate-700 dark:text-slate-300">{resp.prompt_text}</span>
+                            </div>
+                            <div className="mb-2">
+                              <strong>Response:</strong>
+                            </div>
+                            <div className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap bg-white dark:bg-slate-600 p-2 rounded">{resp.response}</div>
+                            <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                              <strong>KPIs:</strong> Brand Mentioned: {resp.kpis.brand_mentioned ? 'Yes' : 'No'} | Citations with Link: {resp.kpis.brand_citation_with_link ? 'Yes' : 'No'} | Competitors: {Object.keys(resp.kpis.competitor_mentions).join(', ')}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -302,6 +392,37 @@ const GlobalDashboard: React.FC = () => {
                   ))}
                 </div>
               </div>
+            </div>
+
+            {/* Raw Responses */}
+            <div className="mt-8">
+              <button
+                onClick={() => fetchResponses()}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                {loadingResponses['main'] ? 'Loading...' : showResponses['main'] ? 'Hide Raw Responses' : 'View Raw Responses'}
+              </button>
+              {showResponses['main'] && responses['main'] && (
+                <div className="mt-4 space-y-4 max-h-96 overflow-y-auto">
+                  {responses['main'].map(resp => (
+                    <div key={resp.id} className="bg-slate-50 dark:bg-slate-700 p-4 rounded-lg">
+                      <div className="text-sm text-slate-600 dark:text-slate-400 mb-2">
+                        <strong>Model:</strong> {resp.model} | <strong>Region:</strong> {resp.region} | <strong>Language:</strong> {resp.language_code} | <strong>Keyword:</strong> {resp.keyword} | <strong>Prompt Template:</strong> {resp.prompt_template}
+                      </div>
+                      <div className="mb-2">
+                        <strong>Prompt:</strong> <span className="text-slate-700 dark:text-slate-300">{resp.prompt_text}</span>
+                      </div>
+                      <div className="mb-2">
+                        <strong>Response:</strong>
+                      </div>
+                      <div className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap bg-white dark:bg-slate-600 p-2 rounded">{resp.response}</div>
+                      <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                        <strong>KPIs:</strong> Brand Mentioned: {resp.kpis.brand_mentioned ? 'Yes' : 'No'} | Citations with Link: {resp.kpis.brand_citation_with_link ? 'Yes' : 'No'} | Competitors: {Object.keys(resp.kpis.competitor_mentions).join(', ')}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </>
         )}
