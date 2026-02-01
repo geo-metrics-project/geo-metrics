@@ -9,8 +9,8 @@ export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [userName, setUserName] = useState('John Doe');
-  const [userEmail, setUserEmail] = useState('john@example.com');
+  const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
@@ -75,27 +75,7 @@ export default function Header() {
             <span className="hidden sm:inline text-sm px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">BETA</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-8">
-            <Link
-              href="#features"
-              className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded px-2 py-1"
-            >
-              Fonctionnalités
-            </Link>
-            <Link
-              href="/tarifs"
-              className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded px-2 py-1"
-            >
-              Tarifs
-            </Link>
-            <Link
-              href="#resources"
-              className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded px-2 py-1"
-            >
-              Ressources
-            </Link>
-          </div>
+
 
           {/* Right Section */}
           <div className="flex items-center gap-4">
@@ -185,13 +165,14 @@ export default function Header() {
             )}
 
             {/* CTA Button */}
-            <button
+            <Link
+              href={isLoggedIn ? "/reports/create" : "/auth/login"}
               className="hidden sm:flex group items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
               aria-label="Lancer un audit IA"
             >
               <span>Lancer un audit</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
-            </button>
+            </Link>
 
             {/* Mobile Menu Button */}
             <button
