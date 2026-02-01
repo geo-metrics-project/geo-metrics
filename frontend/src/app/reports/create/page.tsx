@@ -338,7 +338,7 @@ export default function CreateReportPage() {
   <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/10 dark:to-purple-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-800/30 p-6 shadow-lg sticky top-6">
     <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
       <Trophy className="w-5 h-5 text-purple-500" />
-      Aperçu des métriques
+      Exemple de métriques
     </h3>
 
     <div className="space-y-4">
