@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import {
   Chart as ChartJS,
   ArcElement,
@@ -43,6 +44,8 @@ interface FilterState {
 }
 
 const GlobalDashboard: React.FC = () => {
+  const params = useParams();
+  const reportId = params.reportId as string;
   // État des filtres
   const [filters, setFilters] = useState<FilterState>({
     region: 'All',
@@ -61,38 +64,31 @@ const GlobalDashboard: React.FC = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Simulation des appels API
         const [reportRes, kpiRes] = await Promise.all([
-          Promise.resolve({
-            id: 9,
-            brand_name: "Spotify",
-            competitor_names: ["deezer", "youtube music", "Napster"],
-            models: ["openai/gpt-oss-120b"],
-            keywords: ["streaming music", "sound", "music plateform"],
-            regions: ["Global"],
-            languages: ["default"],
-            prompt_templates: ["can you find me some web site where i can find {keyword}?"]
-          }),
-          Promise.resolve({
-            kpis: {
-              total_responses: 3,
-              brand_mentioned: 2,
-              brand_citation_with_link: 1,
-              competitor_mentions: { "deezer": 2, "Napster": 0, "youtube music": 2 }
-            }
-          })
+          fetch(`/api/reports/${reportId}`),
+          fetch(`/api/reports/${reportId}/kpis`)
         ]);
 
-        setReport(reportRes);
-        setKpiData(kpiRes.kpis);
+        if (!reportRes.ok || !kpiRes.ok) {
+          throw new Error('Failed to fetch data');
+        }
+
+        const reportData = await reportRes.json();
+        const kpiData = await kpiRes.json();
+
+        setReport(reportData);
+        setKpiData(kpiData);
       } catch (error) {
         console.error("Erreur API", error);
+        // Optionally set an error state
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
-  }, [filters]); // Recharge quand un filtre change
+    if (reportId) {
+      fetchData();
+    }
+  }, [reportId, filters]); // Still depend on filters if needed for future filtering
 
   const pieData: ChartData<'pie'> = {
     labels: [report?.brand_name || 'Brand', ...Object.keys(kpiData?.competitor_mentions || {})],

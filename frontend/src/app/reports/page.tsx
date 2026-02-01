@@ -84,13 +84,6 @@ export default function ReportsListPage() {
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
             <div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-100 dark:border-indigo-800/30 mb-6">
-                <Database className="w-4 h-4 text-purple-500" />
-                <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
-                  Dashboard
-                </span>
-              </div>
-              
               <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
                 <span className="text-gray-900 dark:text-white">Vos rapports </span>
                 <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">GEO</span>
