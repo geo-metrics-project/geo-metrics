@@ -206,27 +206,6 @@ export default function Header() {
             role="navigation"
             aria-label="Menu mobile"
           >
-            <Link
-              href="#features"
-              onClick={() => setShowMobileMenu(false)}
-              className="block px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              Fonctionnalités
-            </Link>
-            <Link
-              href="/tarifs"
-              onClick={() => setShowMobileMenu(false)}
-              className="block px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              Tarifs
-            </Link>
-            <Link
-              href="#resources"
-              onClick={() => setShowMobileMenu(false)}
-              className="block px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              Ressources
-            </Link>
 
             {isLoggedIn ? (
               <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2 space-y-2">
