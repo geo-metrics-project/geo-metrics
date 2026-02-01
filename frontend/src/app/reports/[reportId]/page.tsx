@@ -208,9 +208,9 @@ const GlobalDashboard: React.FC = () => {
                 <option value="none">None</option>
                 <option value="keyword">Keyword</option>
                 <option value="region">Region</option>
-                <option value="language">Language</option>
+                <option value="language_code">Language</option>
                 <option value="model">Model</option>
-                <option value="prompt_templates">Prompt Template</option>
+                <option value="prompt_template">Prompt Template</option>
               </select>
             </div>
 
