@@ -3,6 +3,16 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Design system colors */
+  --color-primary: #4f46e5; /* indigo-600 */
+  --color-primary-600: #4f46e5;
+  --color-secondary: #7c3aed; /* purple-600 */
+  --color-accent: #f59e0b; /* yellow-500 */
+  --color-muted: #6b7280; /* gray-500 */
+  --color-surface: #ffffff;
+  --color-success: #16a34a;
+  --color-danger: #dc2626;
 }
 
 @theme inline {
@@ -20,7 +30,21 @@
 }
 
 body {
-  background: var(--background);
+  background: linear-gradient(to bottom, #eff6ff 0%, #ffffff 50%, rgba(253,230,138,0.35) 100%);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: linear-gradient(to bottom, #071024 0%, #0a0a0a 40%, #050505 100%);
+    color: var(--foreground);
+  }
+}
+
+/* Helpful utilities for using the design tokens in plain CSS when needed */
+.site-primary { color: var(--color-primary); }
+.site-accent { color: var(--color-accent); }
+.bg-site-primary { background: var(--color-primary); }
+.bg-site-accent { background: var(--color-accent); }
+.text-muted { color: var(--color-muted); }
