@@ -102,7 +102,7 @@ export default function ReportsListPage() {
             </div>
 
             <a 
-              href="/create" 
+              href="reports/create" 
               className="group flex items-center gap-2 px-6 py-3 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
             >
               <Zap className="w-4 h-4" />
