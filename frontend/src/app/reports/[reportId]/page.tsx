@@ -64,19 +64,17 @@ const GlobalDashboard: React.FC = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const queryParams = new URLSearchParams({
-          region: filters.region,
-          language: filters.language,
-          model: filters.model,
-          keyword: filters.keyword,
-          prompt_templates: filters.prompt_templates,
-          limit: '1000',
-          offset: '0'
-        });
+        const queryParams = new URLSearchParams();
 
-        if (filters.aggregateBy !== 'none') {
-          queryParams.set('aggregate_by', filters.aggregateBy);
-        }
+        if (filters.region !== 'All') queryParams.set('region', filters.region);
+        if (filters.language !== 'All') queryParams.set('language', filters.language);
+        if (filters.model !== 'All') queryParams.set('model', filters.model);
+        if (filters.keyword !== 'All') queryParams.set('keyword', filters.keyword);
+        if (filters.prompt_templates !== 'All') queryParams.set('prompt_templates', filters.prompt_templates);
+        if (filters.aggregateBy !== 'none') queryParams.set('aggregate_by', filters.aggregateBy);
+
+        queryParams.set('limit', '1000');
+        queryParams.set('offset', '0');
 
         const [reportRes, kpiRes] = await Promise.all([
           fetch(`/api/reports/${reportId}`),
