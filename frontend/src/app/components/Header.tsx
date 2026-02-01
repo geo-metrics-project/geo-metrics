@@ -122,13 +122,13 @@ export default function Header() {
                     </div>
 
                     <Link
-                      href="/dashboard"
+                      href="/reports/list"
                       onClick={() => setShowDropdown(false)}
                       className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 mx-1 rounded"
                       role="menuitem"
                     >
                       <BarChart className="w-4 h-4" aria-hidden="true" />
-                      Tableau de bord
+                      Mes rapports
                     </Link>
 
                     <Link
@@ -213,12 +213,12 @@ export default function Header() {
                   <p className="text-sm font-medium text-gray-900 dark:text-white">{userName}</p>
                 </div>
                 <Link
-                  href="/dashboard"
+                  href="/reports/list"
                   onClick={() => setShowMobileMenu(false)}
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
                   <BarChart className="w-4 h-4 inline mr-2" aria-hidden="true" />
-                  Tableau de bord
+                  Mes rapports
                 </Link>
                 <Link
                   href={`${process.env.NEXT_PUBLIC_KRATOS_URL || "https://kratos.combaldieu.fr"}/self-service/settings/browser`}
