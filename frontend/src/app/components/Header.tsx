@@ -133,13 +133,13 @@ export default function Header() {
                     </Link>
 
                     <Link
-                      href="/account"
+                      href={`${process.env.NEXT_PUBLIC_KRATOS_URL || "https://kratos.combaldieu.fr"}/self-service/settings/browser`}
                       onClick={() => setShowDropdown(false)}
                       className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 mx-1 rounded"
                       role="menuitem"
                     >
                       <Settings className="w-4 h-4" aria-hidden="true" />
-                      Paramètres
+                      Paramètres de compte
                     </Link>
 
                     <button
@@ -244,12 +244,12 @@ export default function Header() {
                   Tableau de bord
                 </Link>
                 <Link
-                  href="/account"
+                  href={`${process.env.NEXT_PUBLIC_KRATOS_URL || "https://kratos.combaldieu.fr"}/self-service/settings/browser`}
                   onClick={() => setShowMobileMenu(false)}
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
                   <Settings className="w-4 h-4 inline mr-2" aria-hidden="true" />
-                  Paramètres
+                  Paramètres de compte
                 </Link>
                 <button
                   onClick={() => {
