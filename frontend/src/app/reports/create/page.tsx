@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   ArrowRight, 
   Target, 
@@ -58,6 +59,7 @@ const ALL_MODELS = [
 ];
 
 export default function CreateReportPage() {
+  const router = useRouter();
   const [form, setForm] = useState<{ 
     brand_name: string; 
     keywords: string[]; 
@@ -77,7 +79,7 @@ export default function CreateReportPage() {
   });
   
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<null | { ok: boolean; report_id?: number; message?: string }>(null);
+  const [result, setResult] = useState<null | { ok: boolean; message?: string }>(null);
   
   // États pour "Voir plus"
   const [showAllLangs, setShowAllLangs] = useState(false);
@@ -236,9 +238,10 @@ export default function CreateReportPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setResult({ ok: true, report_id: data.report_id });
-        setForm(s => ({ ...s, brand_name: '', keywords: [], competitor_names: [], regions: ['Global'], prompt_templates: ["What do you know about {keyword}? What brands come to your mind when you think of {keyword}?"] }));
-        setIncludeGlobal(true); 
+        setResult({ ok: true });
+        setTimeout(() => {
+          router.push(`/reports/${data.report_id}`);
+        }, 2000);
       } else {
         const text = await res.text();
         setResult({ ok: false, message: text });
@@ -582,8 +585,8 @@ export default function CreateReportPage() {
                         {result.ok ? <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" /> : <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />}
                       </div>
                       <div className="flex-1">
-                        <h3 className={`font-bold text-lg mb-2 ${result.ok ? 'text-green-800 dark:text-green-300' : 'text-red-800 dark:text-red-300'}`}>{result.ok ? '✅ Analyse lancée !' : '❌ Erreur'}</h3>
-                        <p className={`${result.ok ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>{result.ok ? <>ID Rapport : <code className="px-2 py-1 bg-white/50 dark:bg-black/30 rounded">{result.report_id}</code></> : result.message}</p>
+                        <h3 className={`font-bold text-lg mb-2 ${result.ok ? 'text-green-800 dark:text-green-300' : 'text-red-800 dark:text-red-300'}`}>{result.ok ? '✅ Analyse réussie !' : '❌ Erreur'}</h3>
+                        <p className={`${result.ok ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>{result.ok ? 'Redirection vers le rapport en cours...' : result.message}</p>
                       </div>
                     </div>
                   </div>
