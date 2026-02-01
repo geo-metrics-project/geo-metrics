@@ -22,6 +22,7 @@ class LLMResponseData(BaseModel):
     keyword: str = Field(..., description="Keyword that was queried")
     language_code: str = Field(..., description="Language code used")
     region: str = Field(..., description="Region context used")
+    prompt_template: str = Field(..., description="Prompt template used")
     prompt_text: str = Field(..., description="Full prompt text sent to the model")
     response: str = Field(..., description="Response from the LLM")
 
@@ -136,6 +137,7 @@ async def analyze_brand(
                     keyword=job["keyword"],
                     language_code=job["language_code"],
                     region=job["region"],
+                    prompt_template=job["prompt_template"],
                     prompt_text=job["prompt_text"],
                     response=result.get("response", "")
                 ).model_dump()
