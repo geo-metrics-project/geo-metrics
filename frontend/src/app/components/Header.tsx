@@ -27,7 +27,7 @@ export default function Header() {
           const data = await response.json();
           setSession(data);
           setIsLoggedIn(true);
-          setUserName(`${data.identity.traits.firstName} ${data.identity.traits.lastName}`);
+          setUserName(data.identity.traits.email);
           setUserEmail(data.identity.traits.email);
         } else {
           setIsLoggedIn(false);
@@ -119,7 +119,6 @@ export default function Header() {
                   >
                     <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                       <p className="text-sm font-medium text-gray-900 dark:text-white">{userName}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{userEmail}</p>
                     </div>
 
                     <Link
@@ -233,7 +232,6 @@ export default function Header() {
               <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2 space-y-2">
                 <div className="px-4 py-2">
                   <p className="text-sm font-medium text-gray-900 dark:text-white">{userName}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{userEmail}</p>
                 </div>
                 <Link
                   href="/dashboard"
