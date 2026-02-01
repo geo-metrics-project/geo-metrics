@@ -74,10 +74,10 @@ const GlobalDashboard: React.FC = () => {
         }
 
         const reportData = await reportRes.json();
-        const kpiData = await kpiRes.json();
+        const kpiDataRaw = await kpiRes.json();
 
         setReport(reportData);
-        setKpiData(kpiData);
+        setKpiData({ ...kpiDataRaw, competitor_mentions: kpiDataRaw.competitor_mentions || {} });
       } catch (error) {
         console.error("Erreur API", error);
         // Optionally set an error state
