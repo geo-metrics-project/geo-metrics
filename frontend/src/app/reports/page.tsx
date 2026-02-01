@@ -218,7 +218,7 @@ export default function ReportsListPage() {
                 {/* Card Footer */}
                 <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800 mt-auto">
                   <a 
-                    href={`/report/${report.id}`} 
+                    href={`/reports/${report.id}`} 
                     className="flex items-center justify-between w-full px-4 py-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm font-bold text-gray-700 dark:text-gray-200 hover:border-indigo-300 dark:hover:border-indigo-600 hover:text-indigo-600 dark:hover:text-indigo-400 hover:shadow-sm transition-all group-hover:translate-x-1"
                   >
                     <span>Voir le rapport complet</span>
