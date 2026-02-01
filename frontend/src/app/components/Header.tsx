@@ -11,31 +11,35 @@ export default function Header() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const [session, setSession] = useState(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-    setIsLoggedIn(!!token);
-
-    if (token) {
-      const storedEmail = localStorage.getItem('user_email');
-      const storedData = localStorage.getItem('user_data');
-
-      if (storedEmail) {
-        setUserEmail(storedEmail);
-      }
-
-      if (storedData) {
-        try {
-          const data = JSON.parse(storedData);
-          setUserName(`${data.firstName} ${data.lastName}`);
-        } catch (e) {
-          // Fallback to default name
+    const fetchSession = async () => {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_KRATOS_URL || "https://kratos.combaldieu.fr";
+        const response = await fetch(`${baseUrl}/sessions/whoami`, {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setSession(data);
+          setIsLoggedIn(true);
+          setUserName(`${data.identity.traits.firstName} ${data.identity.traits.lastName}`);
+          setUserEmail(data.identity.traits.email);
+        } else {
+          setIsLoggedIn(false);
+          setSession(null);
         }
+      } catch (error) {
+        setIsLoggedIn(false);
+        setSession(null);
       }
-    }
+    };
+
+    fetchSession();
 
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -50,14 +54,19 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const handleLogin = () => {
+    const baseUrl = process.env.NEXT_PUBLIC_KRATOS_URL || "https://kratos.combaldieu.fr";
+    window.location.href = `${baseUrl}/self-service/login/browser`;
+  };
+
+  const handleRegister = () => {
+    const baseUrl = process.env.NEXT_PUBLIC_KRATOS_URL || "https://kratos.combaldieu.fr";
+    window.location.href = `${baseUrl}/self-service/registration/browser`;
+  };
+
   const handleLogout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user_email');
-    localStorage.removeItem('user_data');
-    setIsLoggedIn(false);
-    setShowDropdown(false);
-    setShowMobileMenu(false);
-    router.push('/');
+    const baseUrl = process.env.NEXT_PUBLIC_KRATOS_URL || "https://kratos.combaldieu.fr";
+    window.location.href = `${baseUrl}/self-service/logout/browser`;
   };
 
   return (
@@ -146,21 +155,21 @@ export default function Header() {
               </div>
             ) : (
               <div className="hidden md:flex items-center gap-4">
-                <Link
-                  href="/auth/login"
+                <button
+                  onClick={handleLogin}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   aria-label="Se connecter"
                 >
                   <User className="w-4 h-4" aria-hidden="true" />
                   Connexion
-                </Link>
-                <Link
-                  href="/auth/register"
+                </button>
+                <button
+                  onClick={handleRegister}
                   className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 rounded-lg transition-all shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
                   aria-label="S'inscrire"
                 >
                   S'inscrire
-                </Link>
+                </button>
               </div>
             )}
 
@@ -255,21 +264,25 @@ export default function Header() {
               </div>
             ) : (
               <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2 space-y-2">
-                <Link
-                  href="/auth/login"
-                  onClick={() => setShowMobileMenu(false)}
-                  className="block px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                <button
+                  onClick={() => {
+                    handleLogin();
+                    setShowMobileMenu(false);
+                  }}
+                  className="block w-full text-left px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
                 >
                   <User className="w-4 h-4 inline mr-2" aria-hidden="true" />
                   Connexion
-                </Link>
-                <Link
-                  href="/auth/register"
-                  onClick={() => setShowMobileMenu(false)}
-                  className="block px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 rounded-lg transition-all text-center"
+                </button>
+                <button
+                  onClick={() => {
+                    handleRegister();
+                    setShowMobileMenu(false);
+                  }}
+                  className="block w-full text-left px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 rounded-lg transition-all text-center"
                 >
                   S'inscrire
-                </Link>
+                </button>
               </div>
             )}
           </div>

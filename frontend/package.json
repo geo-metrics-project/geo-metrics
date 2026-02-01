@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@ory/client": "^1.22.15",
     "lucide-react": "^0.562.0",
     "chart.js": "^4.5.1",
     "next": "16.0.3",
