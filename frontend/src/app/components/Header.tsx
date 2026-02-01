@@ -173,14 +173,25 @@ export default function Header() {
             )}
 
             {/* CTA Button */}
-            <Link
-              href={isLoggedIn ? "/reports/create" : "/auth/login"}
-              className="hidden sm:flex group items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
-              aria-label="Lancer un audit IA"
-            >
-              <span>Lancer un audit</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
-            </Link>
+            {isLoggedIn ? (
+              <Link
+                href="/reports/create"
+                className="hidden sm:flex group items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                aria-label="Lancer un audit IA"
+              >
+                <span>Lancer un audit</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+              </Link>
+            ) : (
+              <button
+                onClick={handleLogin}
+                className="hidden sm:flex group items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                aria-label="Se connecter pour lancer un audit"
+              >
+                <span>Lancer un audit</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+              </button>
+            )}
 
             {/* Mobile Menu Button */}
             <button

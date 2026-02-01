@@ -53,7 +53,7 @@ const GlobalDashboard: React.FC = () => {
     model: 'All',
     keyword: 'All',
     prompt_templates : 'All',
-    aggregateBy: 'keyword'
+    aggregateBy: 'none'
   });
 
   const [report, setReport] = useState<ReportMetadata | null>(null);
@@ -64,9 +64,23 @@ const GlobalDashboard: React.FC = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
+        const queryParams = new URLSearchParams({
+          region: filters.region,
+          language: filters.language,
+          model: filters.model,
+          keyword: filters.keyword,
+          prompt_templates: filters.prompt_templates,
+          limit: '1000',
+          offset: '0'
+        });
+
+        if (filters.aggregateBy !== 'none') {
+          queryParams.set('aggregate_by', filters.aggregateBy);
+        }
+
         const [reportRes, kpiRes] = await Promise.all([
           fetch(`/api/reports/${reportId}`),
-          fetch(`/api/reports/${reportId}/kpis`)
+          fetch(`/api/reports/${reportId}/kpis?${queryParams}`)
         ]);
 
         if (!reportRes.ok || !kpiRes.ok) {
@@ -88,7 +102,7 @@ const GlobalDashboard: React.FC = () => {
     if (reportId) {
       fetchData();
     }
-  }, [reportId, filters]); // Still depend on filters if needed for future filtering
+  }, [reportId, filters]); // Refetch when filters change
 
   const pieData: ChartData<'pie'> = {
     labels: [report?.brand_name || 'Brand', ...Object.keys(kpiData?.competitor_mentions || {})],
@@ -158,6 +172,7 @@ const GlobalDashboard: React.FC = () => {
                 value={filters.aggregateBy}
                 onChange={(e) => setFilters({...filters, aggregateBy: e.target.value})}
               >
+                <option value="none">None</option>
                 <option value="keyword">Keyword</option>
                 <option value="region">Region</option>
                 <option value="model">Model</option>
