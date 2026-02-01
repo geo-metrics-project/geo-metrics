@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FileText, 
   Search, 
@@ -15,21 +15,41 @@ import {
   BarChart3
 } from 'lucide-react';
 
-// --- DONNÉES EN DUR (MOCK) ---
-const MOCK_REPORTS = [
-  {    "id": 2,    "brand_name": "spotify",    "competitor_names": [      "deezer",      "youtube music",      "Napster"    ],    "models": [      "meta-llama/Llama-3.1-8B-Instruct"    ],    "keywords": [      "streaming music",      "sound",      "music plateform"    ],    "regions": [      "Global"    ],    "languages": [      "default"    ],    "prompt_templates": [      "What do you know about {keyword}? What brands come to your mind when you think of {keyword}?"    ],    "created_at": "2026-02-01T14:20:21.054682",    "updated_at": "2026-02-01T14:20:21.054709"  },
-  {    "id": 3,    "brand_name": "spotify",    "competitor_names": [      "deezer",      "youtube music",      "Napster"    ],    "models": [      "meta-llama/Llama-3.1-8B-Instruct"    ],    "keywords": [      "streaming music",      "sound",      "music plateform"    ],    "regions": [      "Global"    ],    "languages": [      "default"    ],    "prompt_templates": [      "can you find me some web site where i can find {keyword}?"    ],    "created_at": "2026-02-01T14:26:08.383471",    "updated_at": "2026-02-01T14:26:08.383495"  },
-  {    "id": 4,    "brand_name": "spotify",    "competitor_names": [      "deezer",      "youtube music",      "Napster"    ],    "models": [      "openai/gpt-oss-120b"    ],    "keywords": [      "streaming music",      "sound",      "music plateform"    ],    "regions": [      "Global"    ],    "languages": [      "default"    ],    "prompt_templates": [      "can you find me some web site where i can find {keyword}?"    ],    "created_at": "2026-02-01T14:28:13.073593",    "updated_at": "2026-02-01T14:28:13.073617"  },
-  {    "id": 5,    "brand_name": "spotify",    "competitor_names": [      "deezer",      "youtube music",      "Napster"    ],    "models": [      "openai/gpt-oss-120b"    ],    "keywords": [      "streaming music",      "sound",      "music plateform"    ],    "regions": [      "Global"    ],    "languages": [      "default"    ],    "prompt_templates": [      "can you find me some web site where i can find {keyword}?"    ],    "created_at": "2026-02-01T14:30:37.233339",    "updated_at": "2026-02-01T14:30:37.233367"  },
-  {    "id": 6,    "brand_name": "spotify",    "competitor_names": [      "deezer",      "youtube music",      "Napster"    ],    "models": [      "openai/gpt-oss-20b"    ],    "keywords": [      "streaming music",      "sound",      "music plateform"    ],    "regions": [      "Global"    ],    "languages": [      "default"    ],    "prompt_templates": [      "can you find me some web site where i can find {keyword}?"    ],    "created_at": "2026-02-01T14:33:04.570474",    "updated_at": "2026-02-01T14:33:04.570497"  },
-  {    "id": 7,    "brand_name": "spotify",    "competitor_names": [      "deezer",      "youtube music",      "Napster"    ],    "models": [      "openai/gpt-oss-20b"    ],    "keywords": [      "streaming music",      "sound",      "music plateform"    ],    "regions": [      "Global"    ],    "languages": [      "default"    ],    "prompt_templates": [      "can you find me some web site where i can find {keyword}?"    ],    "created_at": "2026-02-01T14:34:05.138884",    "updated_at": "2026-02-01T14:34:05.138909"  },
-  {    "id": 8,    "brand_name": "spotify",    "competitor_names": [      "deezer",      "youtube music",      "Napster"    ],    "models": [      "openai/gpt-oss-120b"    ],    "keywords": [      "streaming music",      "sound",      "music plateform"    ],    "regions": [      "Global"    ],    "languages": [      "default"    ],    "prompt_templates": [      "can you find me some web site where i can find {keyword}?"    ],    "created_at": "2026-02-01T14:39:01.473617",    "updated_at": "2026-02-01T14:39:01.473636"  },
-  {    "id": 9,    "brand_name": "spotify",    "competitor_names": [      "deezer",      "youtube music",      "Napster"    ],    "models": [      "openai/gpt-oss-120b"    ],    "keywords": [      "streaming music",      "sound",      "music plateform"    ],    "regions": [      "Global"    ],    "languages": [      "default"    ],    "prompt_templates": [      "can you find me some web site where i can find {keyword}?"    ],    "created_at": "2026-02-01T14:40:01.048458",    "updated_at": "2026-02-01T14:40:01.048473"  }
-];
+// Interface for Report
+interface Report {
+  id: number;
+  brand_name: string;
+  competitor_names: string[];
+  models: string[];
+  keywords: string[];
+  regions: string[];
+  languages: string[];
+  prompt_templates: string[];
+  created_at: string;
+  updated_at: string;
+}
 
 export default function ReportsListPage() {
-  // On utilise directement les données mockées (triées par date décroissante pour le visuel)
-  const reports = MOCK_REPORTS.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  const [reports, setReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const response = await fetch('/api/reports');
+        if (response.ok) {
+          const data = await response.json();
+          setReports(data.sort((a: Report, b: Report) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+        }
+      } catch (error) {
+        console.error('Error fetching reports:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReports();
+  }, []);
 
   // Formatage de la date
   const formatDate = (dateString: string) => {
@@ -76,8 +96,8 @@ export default function ReportsListPage() {
                 <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">GEO</span>
               </h1>
               <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl leading-relaxed">
-                Suivez l'évolution de la visibilité de <strong>{reports[0].brand_name}</strong>.
-                <span className="block text-sm mt-2 text-gray-400 font-mono">* Données de démonstration chargées en mémoire</span>
+                Suivez l'évolution de la visibilité de vos marques.
+                {loading && <span className="block text-sm mt-2 text-gray-400 font-mono">Chargement des rapports...</span>}
               </p>
             </div>
 
@@ -90,8 +110,30 @@ export default function ReportsListPage() {
             </a>
           </div>
 
-          {/* Grid Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Loading State */}
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <Database className="w-8 h-8 text-indigo-500 animate-pulse mx-auto mb-4" />
+                <p className="text-gray-600 dark:text-gray-300">Chargement de vos rapports...</p>
+              </div>
+            </div>
+          ) : reports.length === 0 ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <FileText className="w-8 h-8 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 dark:text-gray-300">Aucun rapport trouvé.</p>
+                <a 
+                  href="/reports/create" 
+                  className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  Créer votre premier rapport
+                </a>
+              </div>
+            </div>
+          ) : (
+            /* Grid Layout */
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {reports.map((report) => (
               <div 
                 key={report.id}
@@ -186,6 +228,7 @@ export default function ReportsListPage() {
               </div>
             ))}
           </div>
+          )}
         </div>
       </section>
     </div>
