@@ -122,7 +122,7 @@ export default function Header() {
                     </div>
 
                     <Link
-                      href="/reports/list"
+                      href="/reports"
                       onClick={() => setShowDropdown(false)}
                       className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 mx-1 rounded"
                       role="menuitem"
@@ -213,7 +213,7 @@ export default function Header() {
                   <p className="text-sm font-medium text-gray-900 dark:text-white">{userName}</p>
                 </div>
                 <Link
-                  href="/reports/list"
+                  href="/reports"
                   onClick={() => setShowMobileMenu(false)}
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
