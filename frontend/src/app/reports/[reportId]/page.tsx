@@ -27,11 +27,23 @@ interface ReportMetadata {
   prompt_templates: string[];
 }
 
+interface KpiMetadata {
+  total_responses_aggregated?: number;
+  limit: number;
+  offset: number;
+  applied_filters: { [key: string]: string };
+  aggregated_by?: string;
+}
+
 interface KpiData {
   total_responses: number;
   brand_mentioned: number;
   brand_citation_with_link: number;
   competitor_mentions: { [name: string]: number };
+}
+
+interface AggregatedKpis {
+  [key: string]: KpiData;
 }
 
 interface FilterState {
@@ -57,7 +69,9 @@ const GlobalDashboard: React.FC = () => {
   });
 
   const [report, setReport] = useState<ReportMetadata | null>(null);
+  const [kpiMetadata, setKpiMetadata] = useState<KpiMetadata | null>(null);
   const [kpiData, setKpiData] = useState<KpiData | null>(null);
+  const [aggregatedKpis, setAggregatedKpis] = useState<AggregatedKpis | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -86,10 +100,31 @@ const GlobalDashboard: React.FC = () => {
         }
 
         const reportData = await reportRes.json();
-        const kpiDataRaw = await kpiRes.json();
+        const kpiResponse = await kpiRes.json();
 
         setReport(reportData);
-        setKpiData({ ...kpiDataRaw, competitor_mentions: kpiDataRaw.competitor_mentions || {} });
+        setKpiMetadata(kpiResponse.metadata);
+
+        if (kpiResponse.metadata.aggregated_by) {
+          setAggregatedKpis(kpiResponse.kpis);
+          // Compute totals
+          const kpis = Object.values(kpiResponse.kpis) as KpiData[];
+          const totalKpi: KpiData = {
+            total_responses: kpis.reduce((sum, kpi) => sum + kpi.total_responses, 0),
+            brand_mentioned: kpis.reduce((sum, kpi) => sum + kpi.brand_mentioned, 0),
+            brand_citation_with_link: kpis.reduce((sum, kpi) => sum + kpi.brand_citation_with_link, 0),
+            competitor_mentions: kpis.reduce((acc, kpi) => {
+              Object.entries(kpi.competitor_mentions).forEach(([comp, count]) => {
+                acc[comp] = (acc[comp] || 0) + count;
+              });
+              return acc;
+            }, {} as { [name: string]: number })
+          };
+          setKpiData(totalKpi);
+        } else {
+          setKpiData(kpiResponse.kpis);
+          setAggregatedKpis(null);
+        }
       } catch (error) {
         console.error("Erreur API", error);
         // Optionally set an error state
@@ -111,7 +146,7 @@ const GlobalDashboard: React.FC = () => {
     }]
   };
 
-  if (loading || !report || !kpiData) return <div className="h-screen flex items-center justify-center text-slate-400">Chargement...</div>;
+  if (loading || !report || !kpiData || !kpiMetadata) return <div className="h-screen flex items-center justify-center text-slate-400">Chargement...</div>;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-6 font-sans text-slate-900 dark:text-slate-100">
@@ -173,7 +208,9 @@ const GlobalDashboard: React.FC = () => {
                 <option value="none">None</option>
                 <option value="keyword">Keyword</option>
                 <option value="region">Region</option>
+                <option value="language">Language</option>
                 <option value="model">Model</option>
+                <option value="prompt_templates">Prompt Template</option>
               </select>
             </div>
 
@@ -181,14 +218,32 @@ const GlobalDashboard: React.FC = () => {
         </div>
 
         {/* KPI CARDS */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <KpiCard title="Visibility" value={`${kpiData.total_responses > 0 ? ((kpiData.brand_mentioned / kpiData.total_responses) * 100).toFixed(0) : 0}%`} desc="Mentions Marque" />
-          <KpiCard title="Share of Voice" value={`${(() => {
-            const totalMentions = kpiData.brand_mentioned + Object.values(kpiData.competitor_mentions).reduce((a, b) => a + b, 0);
-            return totalMentions > 0 ? ((kpiData.brand_mentioned / totalMentions) * 100).toFixed(0) : 0;
-          })()}%`} desc="vs Concurrents" />
-          <KpiCard title="Citations" value={`${kpiData.brand_mentioned > 0 ? ((kpiData.brand_citation_with_link / kpiData.brand_mentioned) * 100).toFixed(0) : 0}%`} desc="Avec liens" />
-        </div>
+        {aggregatedKpis ? (
+          <div className="space-y-8">
+            {Object.entries(aggregatedKpis).map(([key, kpi]) => (
+              <div key={key} className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 capitalize">{key}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <KpiCard title="Visibility" value={`${kpi.total_responses > 0 ? ((kpi.brand_mentioned / kpi.total_responses) * 100).toFixed(0) : 0}%`} desc="Mentions Marque" />
+                  <KpiCard title="Share of Voice" value={`${(() => {
+                    const totalMentions = kpi.brand_mentioned + Object.values(kpi.competitor_mentions).reduce((a, b) => a + b, 0);
+                    return totalMentions > 0 ? ((kpi.brand_mentioned / totalMentions) * 100).toFixed(0) : 0;
+                  })()}%`} desc="vs Concurrents" />
+                  <KpiCard title="Citations" value={`${kpi.brand_mentioned > 0 ? ((kpi.brand_citation_with_link / kpi.brand_mentioned) * 100).toFixed(0) : 0}%`} desc="Avec liens" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <KpiCard title="Visibility" value={`${kpiData.total_responses > 0 ? ((kpiData.brand_mentioned / kpiData.total_responses) * 100).toFixed(0) : 0}%`} desc="Mentions Marque" />
+            <KpiCard title="Share of Voice" value={`${(() => {
+              const totalMentions = kpiData.brand_mentioned + Object.values(kpiData.competitor_mentions).reduce((a, b) => a + b, 0);
+              return totalMentions > 0 ? ((kpiData.brand_mentioned / totalMentions) * 100).toFixed(0) : 0;
+            })()}%`} desc="vs Concurrents" />
+            <KpiCard title="Citations" value={`${kpiData.brand_mentioned > 0 ? ((kpiData.brand_citation_with_link / kpiData.brand_mentioned) * 100).toFixed(0) : 0}%`} desc="Avec liens" />
+          </div>
+        )}
 
         {/* CHARTS */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
