@@ -184,9 +184,12 @@ const GlobalDashboard: React.FC = () => {
 
         {/* KPI CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <KpiCard title="Visibility" value={`${((kpiData.brand_mentioned / kpiData.total_responses) * 100).toFixed(0)}%`} desc="Mentions Marque" />
-          <KpiCard title="Share of Voice" value="54%" desc="vs Concurrents" />
-          <KpiCard title="Citations" value={`${((kpiData.brand_citation_with_link / kpiData.brand_mentioned) * 100).toFixed(0)}%`} desc="Avec liens" />
+          <KpiCard title="Visibility" value={`${kpiData.total_responses > 0 ? ((kpiData.brand_mentioned / kpiData.total_responses) * 100).toFixed(0) : 0}%`} desc="Mentions Marque" />
+          <KpiCard title="Share of Voice" value={`${(() => {
+            const totalMentions = kpiData.brand_mentioned + Object.values(kpiData.competitor_mentions).reduce((a, b) => a + b, 0);
+            return totalMentions > 0 ? ((kpiData.brand_mentioned / totalMentions) * 100).toFixed(0) : 0;
+          })()}%`} desc="vs Concurrents" />
+          <KpiCard title="Citations" value={`${kpiData.brand_mentioned > 0 ? ((kpiData.brand_citation_with_link / kpiData.brand_mentioned) * 100).toFixed(0) : 0}%`} desc="Avec liens" />
         </div>
 
         {/* CHARTS */}
