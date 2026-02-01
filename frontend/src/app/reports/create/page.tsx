@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowRight, 
   Target, 
@@ -21,10 +21,8 @@ import {
   Award
 } from 'lucide-react';
 
-// --- DONNÉES ÉTENDUES POUR DÉMO "VOIR PLUS" ---
-
 const ALL_LANGUAGES = [
-  { id: 'default', label: 'Défaut (Original)' },
+  { id: 'default', label: 'Original' },
   { id: 'fr', label: 'Français' },
   { id: 'en', label: 'Anglais' },
   { id: 'es', label: 'Espagnol' },
@@ -60,13 +58,22 @@ const ALL_MODELS = [
 ];
 
 export default function CreateReportPage() {
-  const [form, setForm] = useState({ 
+  const [form, setForm] = useState<{ 
+    brand_name: string; 
+    keywords: string[]; 
+    competitor_names: string[]; 
+    regions: string[]; 
+    languages: string[]; 
+    models: string[];
+    prompt_templates: string[]
+  }>({ 
     brand_name: '',
-    keywords: '',
-    competitor_names: '',
-    regions: 'Global', 
+    keywords: [],
+    competitor_names: [], 
+    regions: ['Global'], 
     languages: ['default'], 
-    models: ['meta-llama/Llama-3.1-8B-Instruct']
+    models: ['meta-llama/Llama-3.1-8B-Instruct'],
+    prompt_templates: ["Quelles marques me conseilles-tu à propos de {keyword}?"]
   });
   
   const [loading, setLoading] = useState(false);
@@ -76,10 +83,82 @@ export default function CreateReportPage() {
   const [showAllLangs, setShowAllLangs] = useState(false);
   const [showAllModels, setShowAllModels] = useState(false);
 
+  // État pour nouvelle région, concurrent et mot-clé
+  const [newRegion, setNewRegion] = useState('');
+  const [newCompetitor, setNewCompetitor] = useState('');
+  const [newKeyword, setNewKeyword] = useState('');
+  const [newPromptTemplate, setNewPromptTemplate] = useState('');
+  const [includeGlobal, setIncludeGlobal] = useState(true);
+
   // Gestion des champs textes
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     const { name, value } = e.target;
     setForm((s) => ({ ...s, [name]: value }));
+  }
+
+  // Effet pour gérer l'inclusion de Global
+  useEffect(() => {
+    setForm(prev => {
+      const hasGlobal = prev.regions.includes('Global');
+      if (includeGlobal && !hasGlobal) {
+        return { ...prev, regions: ['Global', ...prev.regions] };
+      } else if (!includeGlobal && hasGlobal) {
+        return { ...prev, regions: prev.regions.filter(r => r !== 'Global') };
+      }
+      return prev;
+    });
+  }, [includeGlobal]);
+
+  // Ajouter une région
+  function addRegion() {
+    if (newRegion.trim() && !form.regions.includes(newRegion.trim()) && newRegion.trim().toLowerCase() !== 'global') {
+      setForm(prev => ({ ...prev, regions: [...prev.regions, newRegion.trim()] }));
+      setNewRegion('');
+    }
+  }
+
+  // Supprimer une région
+  function removeRegion(region: string) {
+    setForm(prev => ({ ...prev, regions: prev.regions.filter(r => r !== region) }));
+  }
+
+  // Ajouter un concurrent
+  function addCompetitor() {
+    if (newCompetitor.trim() && !form.competitor_names.includes(newCompetitor.trim())) {
+      setForm(prev => ({ ...prev, competitor_names: [...prev.competitor_names, newCompetitor.trim()] }));
+      setNewCompetitor('');
+    }
+  }
+
+  // Supprimer un concurrent
+  function removeCompetitor(competitor: string) {
+    setForm(prev => ({ ...prev, competitor_names: prev.competitor_names.filter(c => c !== competitor) }));
+  }
+
+  // Ajouter un mot-clé
+  function addKeyword() {
+    if (newKeyword.trim() && !form.keywords.includes(newKeyword.trim())) {
+      setForm(prev => ({ ...prev, keywords: [...prev.keywords, newKeyword.trim()] }));
+      setNewKeyword('');
+    }
+  }
+
+  // Supprimer un mot-clé
+  function removeKeyword(keyword: string) {
+    setForm(prev => ({ ...prev, keywords: prev.keywords.filter(k => k !== keyword) }));
+  }
+
+  // Ajouter un template de prompt
+  function addPromptTemplate() {
+    if (newPromptTemplate.trim() && !form.prompt_templates.includes(newPromptTemplate.trim())) {
+      setForm(prev => ({ ...prev, prompt_templates: [...prev.prompt_templates, newPromptTemplate.trim()] }));
+      setNewPromptTemplate('');
+    }
+  }
+
+  // Supprimer un template de prompt
+  function removePromptTemplate(template: string) {
+    setForm(prev => ({ ...prev, prompt_templates: prev.prompt_templates.filter(t => t !== template) }));
   }
 
   // Toggle Langues
@@ -106,15 +185,48 @@ export default function CreateReportPage() {
     e.preventDefault();
     setLoading(true);
     setResult(null);
+
+    // Validation
+    if (!form.brand_name.trim()) {
+      setResult({ ok: false, message: "Le nom de la marque est requis." });
+      setLoading(false);
+      return;
+    }
+    if (form.keywords.length === 0) {
+      setResult({ ok: false, message: "Au moins un mot-clé est requis." });
+      setLoading(false);
+      return;
+    }
+    if (form.regions.length === 0) {
+      setResult({ ok: false, message: "Au moins une région est requise." });
+      setLoading(false);
+      return;
+    }
+    if (form.languages.length === 0) {
+      setResult({ ok: false, message: "Au moins une langue est requise." });
+      setLoading(false);
+      return;
+    }
+    if (form.models.length === 0) {
+      setResult({ ok: false, message: "Au moins un modèle IA est requis." });
+      setLoading(false);
+      return;
+    }
+    if (form.prompt_templates.length === 0) {
+      setResult({ ok: false, message: "Au moins un template de prompt est requis." });
+      setLoading(false);
+      return;
+    }
+
     try {
       const payload = {
         brand_name: form.brand_name,
-        keywords: form.keywords.split(',').map(k => k.trim()).filter(k => k),
-        competitor_names: form.competitor_names ? form.competitor_names.split(',').map(c => c.trim()).filter(c => c) : [],
-        regions: form.regions.split(',').map(r => r.trim()).filter(r => r),
+        keywords: form.keywords,
+        competitor_names: form.competitor_names,
+        regions: form.regions,
         languages: form.languages,
         models: form.models,
-        prompt_templates: ["What do you know about {keyword}? What brands come to your mind when you think of {keyword}?"]
+        prompt_templates: form.prompt_templates
       };
 
       const res = await fetch('/api/analyze', {
@@ -125,7 +237,8 @@ export default function CreateReportPage() {
       if (res.ok) {
         const data = await res.json();
         setResult({ ok: true, report_id: data.report_id });
-        setForm(s => ({ ...s, brand_name: '', keywords: '', competitor_names: '' })); 
+        setForm(s => ({ ...s, brand_name: '', keywords: [], competitor_names: [], regions: ['Global'], prompt_templates: ["What do you know about {keyword}? What brands come to your mind when you think of {keyword}?"] }));
+        setIncludeGlobal(true); 
       } else {
         const text = await res.text();
         setResult({ ok: false, message: text });
@@ -174,13 +287,39 @@ export default function CreateReportPage() {
                     <div className="grid grid-cols-1 gap-6">
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Nom de la marque *</label>
-                        <input name="brand_name" value={form.brand_name} onChange={handleChange} required placeholder="Ex: Spotify" className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
+                        <input name="brand_name" value={form.brand_name} onChange={handleChange} placeholder="Ex: Spotify" className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Régions ciblées (manuel)</label>
-                        <div className="relative">
-                          <MapPin className="absolute left-4 top-4 w-5 h-5 text-gray-400" />
-                          <input name="regions" value={form.regions} onChange={handleChange} placeholder="Ex: Global, France, USA..." className="w-full pl-12 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Marques concurrentes</label>
+                        <div className="flex gap-2">
+                          <input 
+                            value={newCompetitor} 
+                            onChange={(e) => setNewCompetitor(e.target.value)} 
+                            placeholder="Ex: Deezer, Apple Music..." 
+                            className="flex-1 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCompetitor())}
+                          />
+                          <button 
+                            type="button" 
+                            onClick={addCompetitor} 
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium"
+                          >
+                            Ajouter
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {form.competitor_names.map((competitor, index) => (
+                            <div key={index} className="flex items-center gap-2 px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-sm">
+                              <span>{competitor}</span>
+                              <button 
+                                type="button" 
+                                onClick={() => removeCompetitor(competitor)} 
+                                className="text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-200 ml-1 text-lg leading-none"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </div>
@@ -192,62 +331,182 @@ export default function CreateReportPage() {
                       <div className="p-1.5 rounded bg-purple-100 dark:bg-purple-900/50 text-purple-600">
                         <Key className="w-4 h-4" />
                       </div>
-                      Mots-clés & Concurrents
+                      Mots-clés
                     </h3>
                     <div className="space-y-6">
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Mots-clés à analyser *</label>
-                        <textarea name="keywords" value={form.keywords} onChange={handleChange} rows={3} required placeholder="Ex: streaming music, sound, music platform..." className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
+                        <div className="flex gap-2">
+                          <input 
+                            value={newKeyword} 
+                            onChange={(e) => setNewKeyword(e.target.value)} 
+                            placeholder="Ex: streaming music, sound..." 
+                            className="flex-1 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
+                          />
+                          <button 
+                            type="button" 
+                            onClick={addKeyword} 
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium"
+                          >
+                            Ajouter
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {form.keywords.map((keyword, index) => (
+                            <div key={index} className="flex items-center gap-2 px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-sm">
+                              <span>{keyword}</span>
+                              <button 
+                                type="button" 
+                                onClick={() => removeKeyword(keyword)} 
+                                className="text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-200 ml-1 text-lg leading-none"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Marques concurrentes</label>
-                        <textarea name="competitor_names" value={form.competitor_names} onChange={handleChange} rows={2} placeholder="Ex: Deezer, Apple Music..." className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Templates de prompts *</label>
+                        <div className="flex gap-2">
+                          <input 
+                            value={newPromptTemplate} 
+                            onChange={(e) => setNewPromptTemplate(e.target.value)} 
+                            placeholder="Ex: What do you know about {keyword}?..." 
+                            className="flex-1 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addPromptTemplate())}
+                          />
+                          <button 
+                            type="button" 
+                            onClick={addPromptTemplate} 
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium"
+                          >
+                            Ajouter
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {form.prompt_templates.map((template, index) => (
+                            <div key={index} className="flex items-center gap-2 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-sm max-w-xs">
+                              <span className="truncate">{template}</span>
+                              <button 
+                                type="button" 
+                                onClick={() => removePromptTemplate(template)} 
+                                className="text-purple-500 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-200 ml-1 text-lg leading-none flex-shrink-0"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* LANGUES (EXPANDABLE) */}
+                  {/* LANGUES & RÉGIONS */}
                   <div className="mb-8 border-t border-gray-100 dark:border-gray-800 pt-8">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                         <div className="p-1.5 rounded bg-blue-100 dark:bg-blue-900/50 text-blue-600">
                           <Globe className="w-4 h-4" />
                         </div>
-                        Langues
+                        Langues & Régions
                       </h3>
-                      <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full dark:bg-indigo-900/30 dark:text-indigo-300">
-                        {form.languages.length} sélectionnée(s)
-                      </span>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {ALL_LANGUAGES.slice(0, showAllLangs ? ALL_LANGUAGES.length : 6).map((lang) => {
-                        const isSelected = form.languages.includes(lang.id);
-                        return (
-                          <button
-                            key={lang.id}
-                            type="button"
-                            onClick={() => toggleLanguage(lang.id)}
-                            className={`flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-medium transition-all ${isSelected ? 'border-indigo-500 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-500 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-500' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800/80'}`}
-                          >
-                            {lang.label}
-                            {isSelected && <Check className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
-                          </button>
-                        );
-                      })}
+                    {/* Langues */}
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">Langues *</span>
+                        <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full dark:bg-indigo-900/30 dark:text-indigo-300">
+                          {form.languages.length} sélectionnée(s)
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {ALL_LANGUAGES.slice(0, showAllLangs ? ALL_LANGUAGES.length : 6).map((lang) => {
+                          const isSelected = form.languages.includes(lang.id);
+                          return (
+                            <button
+                              key={lang.id}
+                              type="button"
+                              onClick={() => toggleLanguage(lang.id)}
+                              className={`flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-medium transition-all ${isSelected ? 'border-indigo-500 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-500 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-500' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800/80'}`}
+                            >
+                              {lang.label}
+                              {isSelected && <Check className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {/* Bouton Voir Plus Langues */}
+                      <button 
+                        type="button"
+                        onClick={() => setShowAllLangs(!showAllLangs)}
+                        className="mt-4 flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-indigo-600 transition-colors mx-auto"
+                      >
+                        {showAllLangs ? (
+                          <>Voir moins <ChevronUp className="w-4 h-4" /></>
+                        ) : (
+                          <>Voir les {ALL_LANGUAGES.length - 6} autres langues <ChevronDown className="w-4 h-4" /></>
+                        )}
+                      </button>
                     </div>
-                    {/* Bouton Voir Plus Langues */}
-                    <button 
-                      type="button"
-                      onClick={() => setShowAllLangs(!showAllLangs)}
-                      className="mt-4 flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-indigo-600 transition-colors mx-auto"
-                    >
-                      {showAllLangs ? (
-                        <>Voir moins <ChevronUp className="w-4 h-4" /></>
-                      ) : (
-                        <>Voir les {ALL_LANGUAGES.length - 6} autres langues <ChevronDown className="w-4 h-4" /></>
-                      )}
-                    </button>
+
+                    {/* Régions */}
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">Régions *</span>
+                        <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full dark:bg-indigo-900/30 dark:text-indigo-300">
+                          {form.regions.length} sélectionnée(s)
+                        </span>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <input 
+                            type="checkbox" 
+                            id="includeGlobal" 
+                            checked={includeGlobal} 
+                            onChange={(e) => setIncludeGlobal(e.target.checked)} 
+                            className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                          />
+                          <label htmlFor="includeGlobal" className="text-sm text-gray-700 dark:text-gray-200">Inclure la région Global</label>
+                        </div>
+                        <div className="flex gap-2">
+                          <input 
+                            value={newRegion} 
+                            onChange={(e) => setNewRegion(e.target.value)} 
+                            placeholder="Ex: France, USA..." 
+                            className="flex-1 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addRegion())}
+                          />
+                          <button 
+                            type="button" 
+                            onClick={addRegion} 
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium"
+                          >
+                            Ajouter
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {form.regions.map((region, index) => (
+                            <div key={index} className="flex items-center gap-2 px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-sm">
+                              <span>{region}</span>
+                              {region !== 'Global' && (
+                                <button 
+                                  type="button" 
+                                  onClick={() => removeRegion(region)} 
+                                  className="text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-200 ml-1 text-lg leading-none"
+                                >
+                                  ×
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* MODÈLES (EXPANDABLE) */}
@@ -257,7 +516,7 @@ export default function CreateReportPage() {
                         <div className="p-1.5 rounded bg-orange-100 dark:bg-orange-900/50 text-orange-600">
                           <Brain className="w-4 h-4" />
                         </div>
-                        Modèles IA
+                        Modèles IA *
                       </h3>
                       <span className="text-xs font-medium text-purple-600 bg-purple-50 px-2 py-1 rounded-full dark:bg-purple-900/30 dark:text-purple-300">
                         {form.models.length} sélectionné(s)
