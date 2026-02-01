@@ -4,14 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { 
   FileText, 
   Search, 
-  MapPin, 
   Calendar, 
   Zap, 
   Database,
   ChevronRight,
   Bot,
   Users,
-  Globe,
   BarChart3
 } from 'lucide-react';
 
@@ -169,12 +167,21 @@ export default function ReportsListPage() {
                   <div className="grid grid-cols-2 gap-4">
                       <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-                              <Globe className="w-3.5 h-3.5" />
-                              Région
+                              <Search className="w-3.5 h-3.5" />
+                              Mots-clés
                           </div>
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">
-                              {report.regions[0] || 'Global'}
-                          </span>
+                          <div className="flex flex-wrap gap-1">
+                            {report.keywords.slice(0, 2).map((k, i) => (
+                              <span key={i} className="px-1.5 py-0.5 bg-gray-50 dark:bg-gray-800 rounded text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                                {k}
+                              </span>
+                            ))}
+                            {report.keywords.length > 2 && (
+                              <span className="px-1.5 py-0.5 bg-gray-50 dark:bg-gray-800 rounded text-xs text-gray-400 border border-gray-200 dark:border-gray-700">
+                                +{report.keywords.length - 2}
+                              </span>
+                            )}
+                          </div>
                       </div>
                       <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
@@ -187,25 +194,6 @@ export default function ReportsListPage() {
                       </div>
                   </div>
 
-                  {/* Keywords Section */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                      <Search className="w-3.5 h-3.5" />
-                      <span>Mots-clés ({report.keywords.length})</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {report.keywords.slice(0, 3).map((k, i) => (
-                        <span key={i} className="px-2.5 py-1 bg-gray-50 dark:bg-gray-800 rounded-md text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
-                          {k}
-                        </span>
-                      ))}
-                      {report.keywords.length > 3 && (
-                        <span className="px-2.5 py-1 bg-gray-50 dark:bg-gray-800 rounded-md text-xs text-gray-400 border border-gray-200 dark:border-gray-700">
-                          +{report.keywords.length - 3}
-                        </span>
-                      )}
-                    </div>
-                  </div>
                 </div>
 
                 {/* Card Footer */}
