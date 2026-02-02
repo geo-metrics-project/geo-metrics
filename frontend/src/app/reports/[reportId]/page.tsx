@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import {
   Chart as ChartJS,
   ArcElement,
@@ -75,6 +75,7 @@ interface FilterState {
 
 const GlobalDashboard: React.FC = () => {
   const params = useParams();
+  const router = useRouter();
   const reportId = params.reportId as string;
   // État des filtres
   const [filters, setFilters] = useState<FilterState>({
@@ -94,6 +95,23 @@ const GlobalDashboard: React.FC = () => {
   const [responses, setResponses] = useState<{ [key: string]: LlmResponse[] }>({});
   const [loadingResponses, setLoadingResponses] = useState<{ [key: string]: boolean }>({});
   const [showResponses, setShowResponses] = useState<{ [key: string]: boolean }>({});
+
+  const handleDelete = async () => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce rapport ?')) {
+      try {
+        const res = await fetch(`/api/reports/${reportId}`, { method: 'DELETE' });
+        if (res.ok) {
+          alert('Rapport supprimé avec succès');
+          router.push('/reports');
+        } else {
+          alert('Erreur lors de la suppression du rapport');
+        }
+      } catch (error) {
+        console.error('Erreur lors de la suppression', error);
+        alert('Erreur lors de la suppression');
+      }
+    }
+  };
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -225,9 +243,17 @@ const GlobalDashboard: React.FC = () => {
       <div className="max-w-6xl mx-auto">
         
         <header className="mb-8">
-          <h1 className="text-3xl font-black text-slate-800 dark:text-slate-100 tracking-tighter capitalize">
-            {report.brand_name} <span className="text-slate-400 dark:text-slate-500">Intelligence</span>
-          </h1>
+          <div className="flex justify-between items-center">
+            <h1 className="text-3xl font-black text-slate-800 dark:text-slate-100 tracking-tighter capitalize">
+              {report.brand_name} <span className="text-slate-400 dark:text-slate-500">Intelligence</span>
+            </h1>
+            <button
+              onClick={handleDelete}
+              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+            >
+              Supprimer le Rapport
+            </button>
+          </div>
         </header>
 
         {/* SECTION FILTRES (Dropdowns) */}
@@ -420,17 +446,17 @@ const GlobalDashboard: React.FC = () => {
                   {responses['main'].map(resp => (
                     <div key={resp.id} className="bg-slate-50 dark:bg-slate-700 p-4 rounded-lg">
                       <div className="text-sm text-slate-600 dark:text-slate-400 mb-2">
-                        <strong>Model:</strong> {resp.model} | <strong>Region:</strong> {resp.region} | <strong>Language:</strong> {resp.language_code} | <strong>Keyword:</strong> {resp.keyword} | <strong>Prompt Template:</strong> {resp.prompt_template}
+                        <strong>Modèle:</strong> {resp.model} | <strong>Région:</strong> {resp.region} | <strong>Langue:</strong> {resp.language_code} | <strong>Mot-clé:</strong> {resp.keyword} | <strong>Modèle de Prompt:</strong> {resp.prompt_template}
                       </div>
                       <div className="mb-2">
                         <strong>Prompt:</strong> <span className="text-slate-700 dark:text-slate-300">{resp.prompt_text}</span>
                       </div>
                       <div className="mb-2">
-                        <strong>Response:</strong>
+                        <strong>Réponse:</strong>
                       </div>
                       <div className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap bg-white dark:bg-slate-600 p-2 rounded">{resp.response}</div>
                       <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                        <strong>KPIs:</strong> Brand Mentioned: {resp.kpis.brand_mentioned ? 'Yes' : 'No'} | Citations with Link: {resp.kpis.brand_citation_with_link ? 'Yes' : 'No'} | Competitors: {Object.keys(resp.kpis.competitor_mentions).join(', ')}
+                        <strong>KPI:</strong> Marque Mentionnée: {resp.kpis.brand_mentioned ? 'Oui' : 'Non'} | Citations avec Lien: {resp.kpis.brand_citation_with_link ? 'Oui' : 'Non'} | Concurrents: {Object.keys(resp.kpis.competitor_mentions).join(', ')}
                       </div>
                     </div>
                   ))}
