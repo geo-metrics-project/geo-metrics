@@ -581,128 +581,53 @@ export default function CreateReportPage() {
                 )}
               </div>
             </div>
-            {/* COLONNE DROITE : SIDEBAR KPI (1/3) */}
-<div className="space-y-6">
-  <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/10 dark:to-purple-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-800/30 p-6 shadow-lg sticky top-6">
-    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-      <Trophy className="w-5 h-5 text-purple-500" />
-      Exemple de métriques
-    </h3>
+            <div className="space-y-6">
+              {/* TOKEN COUNTER */}
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 rounded-2xl border border-amber-200 dark:border-amber-800/30 p-6 shadow-lg sticky top-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30">
+                    <Zap className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Requêtes totales</h3>
+                </div>
 
-    <div className="space-y-4">
-      {/* Exemple de carte Keyword */}
-      <div className="p-4 bg-white/70 dark:bg-gray-800/50 rounded-2xl border border-indigo-100 dark:border-indigo-800/30 shadow-sm transition-transform hover:scale-[1.02]">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30">
-            <BarChart className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-          </div>
-          <span className="font-bold text-gray-900 dark:text-white text-sm">"Streaming music"</span>
-        </div>
-        
-        <div className="grid grid-cols-1 gap-3">
-          {/* VISIBILITY */}
-          <div className="p-3 bg-indigo-50/50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100/50 dark:border-indigo-800/20">
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Visibility</span>
-              <span className="text-lg font-black text-indigo-700 dark:text-indigo-300">66%</span>
-            </div>
-            <div className="w-full bg-indigo-100 dark:bg-indigo-800/40 h-1.5 rounded-full overflow-hidden">
-              <div className="bg-indigo-500 h-full rounded-full" style={{ width: '66%' }}></div>
-            </div>
-          </div>
+                <div className="text-center mb-4">
+                  <div className="text-5xl font-black bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-2">
+                    {form.models.length * form.keywords.length * form.prompt_templates.length * form.languages.length * form.regions.length}
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">requêtes LLM seront effectuées</p>
+                </div>
 
-          {/* SHARE OF VOICE */}
-          <div className="p-3 bg-purple-50/50 dark:bg-purple-900/20 rounded-xl border border-purple-100/50 dark:border-purple-800/20">
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Share of Voice</span>
-              <span className="text-lg font-black text-purple-700 dark:text-purple-300">35%</span>
-            </div>
-            <p className="text-[10px] text-purple-600/70 dark:text-purple-400/70 italic">vs Deezer (45%) & YouTube (20%)</p>
-          </div>
+                <div className="space-y-2 p-4 bg-white/50 dark:bg-gray-800/30 rounded-xl">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-600 dark:text-gray-400">Modèles</span>
+                    <span className="font-bold text-gray-900 dark:text-white">× {form.models.length}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-600 dark:text-gray-400">Mots-clés</span>
+                    <span className="font-bold text-gray-900 dark:text-white">× {form.keywords.length}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-600 dark:text-gray-400">Templates</span>
+                    <span className="font-bold text-gray-900 dark:text-white">× {form.prompt_templates.length}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-600 dark:text-gray-400">Langues</span>
+                    <span className="font-bold text-gray-900 dark:text-white">× {form.languages.length}</span>
+                  </div>
+                  <div className="flex justify-between text-xs border-t border-amber-200 dark:border-amber-800/30 pt-2">
+                    <span className="text-gray-600 dark:text-gray-400">Régions</span>
+                    <span className="font-bold text-gray-900 dark:text-white">× {form.regions.length}</span>
+                  </div>
+                </div>
 
-          {/* CITATION */}
-          <div className="p-3 bg-emerald-50/50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100/50 dark:border-emerald-800/20">
-            <div className="flex justify-between items-center">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Citation</span>
-              <div className="flex items-center gap-1">
-                <span className="text-lg font-black text-emerald-700 dark:text-emerald-300">12</span>
-                <Globe className="w-3 h-3 text-emerald-500" />
+                <div className="mt-4 p-3 bg-amber-100/50 dark:bg-amber-900/20 rounded-lg border border-amber-200/50 dark:border-amber-800/30">
+                  <p className="text-xs text-amber-800 dark:text-amber-300 text-center">
+                    💡 <strong>1 requête = 1 token</strong>
+                  </p>
+                </div>
               </div>
             </div>
-            <p className="text-[10px] text-emerald-600/70 dark:text-emerald-400/70">Nombre de liens directs vers votre site</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Légende rapide */}
-      <div className="p-4 bg-indigo-50/30 dark:bg-white/5 rounded-xl border border-dashed border-indigo-200 dark:border-indigo-800">
-        <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-widest">Glossaire</h4>
-        <ul className="space-y-3">
-          <li className="flex gap-2 text-[11px] leading-relaxed text-gray-600 dark:text-gray-400">
-            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1 flex-shrink-0" />
-            <span><strong>Visibility :</strong> % de mentions globales dans les réponses générées.</span>
-          </li>
-          <li className="flex gap-2 text-[11px] leading-relaxed text-gray-600 dark:text-gray-400">
-            <div className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-1 flex-shrink-0" />
-            <span><strong>SOV :</strong> Votre part de marché conversationnelle face aux concurrents.</span>
-          </li>
-          <li className="flex gap-2 text-[11px] leading-relaxed text-gray-600 dark:text-gray-400">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1 flex-shrink-0" />
-            <span><strong>Citation :</strong> Sources officielles citées avec URL cliquable.</span>
-          </li>
-        </ul>
-      </div>
-    </div>
-
-    
-  </div>
-
-  {/* TOKEN COUNTER */}
-  <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 rounded-2xl border border-amber-200 dark:border-amber-800/30 p-6 shadow-lg sticky top-6">
-    <div className="flex items-center gap-3 mb-4">
-      <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30">
-        <Zap className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-      </div>
-      <h3 className="text-lg font-bold text-gray-900 dark:text-white">Requêtes totales</h3>
-    </div>
-
-    <div className="text-center mb-4">
-      <div className="text-5xl font-black bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-2">
-        {form.models.length * form.keywords.length * form.prompt_templates.length * form.languages.length * form.regions.length}
-      </div>
-      <p className="text-sm text-gray-600 dark:text-gray-400">requêtes LLM seront effectuées</p>
-    </div>
-
-    <div className="space-y-2 p-4 bg-white/50 dark:bg-gray-800/30 rounded-xl">
-      <div className="flex justify-between text-xs">
-        <span className="text-gray-600 dark:text-gray-400">Modèles</span>
-        <span className="font-bold text-gray-900 dark:text-white">× {form.models.length}</span>
-      </div>
-      <div className="flex justify-between text-xs">
-        <span className="text-gray-600 dark:text-gray-400">Mots-clés</span>
-        <span className="font-bold text-gray-900 dark:text-white">× {form.keywords.length}</span>
-      </div>
-      <div className="flex justify-between text-xs">
-        <span className="text-gray-600 dark:text-gray-400">Templates</span>
-        <span className="font-bold text-gray-900 dark:text-white">× {form.prompt_templates.length}</span>
-      </div>
-      <div className="flex justify-between text-xs">
-        <span className="text-gray-600 dark:text-gray-400">Langues</span>
-        <span className="font-bold text-gray-900 dark:text-white">× {form.languages.length}</span>
-      </div>
-      <div className="flex justify-between text-xs border-t border-amber-200 dark:border-amber-800/30 pt-2">
-        <span className="text-gray-600 dark:text-gray-400">Régions</span>
-        <span className="font-bold text-gray-900 dark:text-white">× {form.regions.length}</span>
-      </div>
-    </div>
-
-    <div className="mt-4 p-3 bg-amber-100/50 dark:bg-amber-900/20 rounded-lg border border-amber-200/50 dark:border-amber-800/30">
-      <p className="text-xs text-amber-800 dark:text-amber-300 text-center">
-        💡 <strong>1 requête = 1 token</strong>
-      </p>
-    </div>
-  </div>
-</div>
 
           </div>
         </div>
