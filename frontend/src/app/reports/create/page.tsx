@@ -364,7 +364,7 @@ export default function CreateReportPage() {
                           <input 
                             value={newPromptTemplate} 
                             onChange={(e) => setNewPromptTemplate(e.target.value)} 
-                            placeholder="Ex: What do you know about {keyword}?..." 
+                            placeholder="Ex: Que connais-tu sur {keyword}?..." 
                             className="flex-1 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
                             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addPromptTemplate())}
                           />
@@ -585,6 +585,52 @@ export default function CreateReportPage() {
             {/* COLONNE DROITE : SIDEBAR KPI (1/3) */}
             {/* COLONNE DROITE : SIDEBAR KPI (1/3) */}
 <div className="space-y-6">
+  {/* TOKEN COUNTER */}
+  <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 rounded-2xl border border-amber-200 dark:border-amber-800/30 p-6 shadow-lg sticky top-6">
+    <div className="flex items-center gap-3 mb-4">
+      <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30">
+        <Zap className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+      </div>
+      <h3 className="text-lg font-bold text-gray-900 dark:text-white">Requêtes totales</h3>
+    </div>
+
+    <div className="text-center mb-4">
+      <div className="text-5xl font-black bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-2">
+        {form.models.length * form.keywords.length * form.prompt_templates.length * form.languages.length * form.regions.length}
+      </div>
+      <p className="text-sm text-gray-600 dark:text-gray-400">requêtes LLM seront effectuées</p>
+    </div>
+
+    <div className="space-y-2 p-4 bg-white/50 dark:bg-gray-800/30 rounded-xl">
+      <div className="flex justify-between text-xs">
+        <span className="text-gray-600 dark:text-gray-400">Modèles</span>
+        <span className="font-bold text-gray-900 dark:text-white">× {form.models.length}</span>
+      </div>
+      <div className="flex justify-between text-xs">
+        <span className="text-gray-600 dark:text-gray-400">Mots-clés</span>
+        <span className="font-bold text-gray-900 dark:text-white">× {form.keywords.length}</span>
+      </div>
+      <div className="flex justify-between text-xs">
+        <span className="text-gray-600 dark:text-gray-400">Templates</span>
+        <span className="font-bold text-gray-900 dark:text-white">× {form.prompt_templates.length}</span>
+      </div>
+      <div className="flex justify-between text-xs">
+        <span className="text-gray-600 dark:text-gray-400">Langues</span>
+        <span className="font-bold text-gray-900 dark:text-white">× {form.languages.length}</span>
+      </div>
+      <div className="flex justify-between text-xs border-t border-amber-200 dark:border-amber-800/30 pt-2">
+        <span className="text-gray-600 dark:text-gray-400">Régions</span>
+        <span className="font-bold text-gray-900 dark:text-white">× {form.regions.length}</span>
+      </div>
+    </div>
+
+    <div className="mt-4 p-3 bg-amber-100/50 dark:bg-amber-900/20 rounded-lg border border-amber-200/50 dark:border-amber-800/30">
+      <p className="text-xs text-amber-800 dark:text-amber-300 text-center">
+        💡 <strong>1 requête = 1 token</strong>
+      </p>
+    </div>
+  </div>
+
   <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/10 dark:to-purple-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-800/30 p-6 shadow-lg sticky top-6">
     <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
       <Trophy className="w-5 h-5 text-purple-500" />
