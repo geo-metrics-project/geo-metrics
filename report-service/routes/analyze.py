@@ -49,13 +49,16 @@ class AnalyzeResponse(BaseModel):
     successful_queries: int
     failed_queries: int
 
-def translate_prompt(prompt: str, target_lang: str) -> str:
+async def translate_prompt(prompt: str, target_lang: str) -> str:
     """Translate the complete prompt"""
     if target_lang == "default":
         return prompt
     
     try:
-        translated = GoogleTranslator(source='auto', target=target_lang).translate(prompt)
+        translated = await asyncio.to_thread(
+            GoogleTranslator(source='auto', target=target_lang).translate,
+            prompt
+        )
         logger.info(f"Translated to {target_lang}: '{prompt[:30]}...' -> '{translated[:30]}...'")
         return translated
     except Exception as e:
@@ -86,6 +89,12 @@ async def query_llm(client: httpx.AsyncClient, model: str, prompt: str, region: 
         logger.error(f"Error querying {model}: {e}")
         return {"success": False, "model": model, "prompt_text": prompt}
 
+async def translate_and_query(client: httpx.AsyncClient, model: str, prompt: str, target_lang: str, region: Optional[str]):
+    """Translate prompt and query LLM in a single async task"""
+    translated_prompt = await translate_prompt(prompt, target_lang)
+    result = await query_llm(client, model, translated_prompt, region)
+    return result, translated_prompt
+
 @router.post("", response_model=AnalyzeResponse)
 async def analyze_brand(
     request: AnalyzeRequest,
@@ -102,46 +111,53 @@ async def analyze_brand(
         f"{len(request.regions)} regions"
     )
     
-    # Step 1: Build jobs
-    jobs = []
+    # Step 1: Build jobs with translation + query tasks
+    job_specs = []
     for region in request.regions:
         for language in request.languages:
             for prompt_template in request.prompt_templates:
                 for keyword in request.keywords:
                     prompt = prompt_template.format(keyword=keyword)
-                    translated_prompt = translate_prompt(prompt, language)
                     for model in request.models:
-                        jobs.append({
+                        job_specs.append({
                             "model": model,
                             "keyword": keyword,
                             "language_code": language,
                             "region": region,
-                            "prompt_text": translated_prompt,
+                            "prompt": prompt,
                             "prompt_template": prompt_template
                         })
 
-    # Step 2: Run queries
+    # Step 2: Run translation + query concurrently
     tasks = []
     async with httpx.AsyncClient(timeout=600.0) as client:
-        for job in jobs:
-            tasks.append(query_llm(client, job["model"], job["prompt_text"], job["region"]))
+        for job in job_specs:
+            tasks.append(translate_and_query(
+                client, 
+                job["model"], 
+                job["prompt"], 
+                job["language_code"], 
+                job["region"]
+            ))
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
     # Step 3: Build LLMResponseData only for successful queries
     llm_responses = []
-    for job, result in zip(jobs, results):
-        if isinstance(result, dict) and result.get("success"):
-            llm_responses.append(
-                LLMResponseData(
-                    model=job["model"],
-                    keyword=job["keyword"],
-                    language_code=job["language_code"],
-                    region=job["region"],
-                    prompt_template=job["prompt_template"],
-                    prompt_text=job["prompt_text"],
-                    response=result.get("response", "")
-                ).model_dump()
-            )
+    for job, result in zip(job_specs, results):
+        if isinstance(result, tuple):
+            query_result, translated_prompt = result
+            if isinstance(query_result, dict) and query_result.get("success"):
+                llm_responses.append(
+                    LLMResponseData(
+                        model=job["model"],
+                        keyword=job["keyword"],
+                        language_code=job["language_code"],
+                        region=job["region"],
+                        prompt_template=job["prompt_template"],
+                        prompt_text=translated_prompt,
+                        response=query_result.get("response", "")
+                    ).model_dump()
+                )
 
     # Step 4: Store/transmit only llm_responses
 
