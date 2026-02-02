@@ -51,7 +51,7 @@ const ALL_MODELS = [
   { id: 'Qwen/Qwen3-VL-8B-Instruct', label: 'Qwen3 VL 8B', desc: 'Vision & Texte' },
   { id: 'moonshotai/Kimi-K2.5', label: 'Kimi K2.5', desc: 'Conversationnel' },
   { id: 'google/gemma-3-27b-it', label: 'Gemma 3 27B', desc: 'Par Google' },
-  { id: 'mistralai/Mistral-Large', label: 'Mistral Large', desc: 'Top Performance EU' },
+  { id: 'mistralai/Mixtral-8x22B-Instruct-v0.1', label: 'Mixtral 8x22B', desc: 'Top Performance EU' },
   { id: 'meta-llama/Llama-3.3-70B-Instruct', label: 'Llama 3.3 70B', desc: 'Très Puissant' },
   { id: 'Qwen/Qwen3-235B-A22B-Instruct-2507', label: 'Qwen3 235B', desc: 'Massif & Précis' },
   { id: 'deepseek-ai/DeepSeek-R1', label: 'DeepSeek R1', desc: 'Raisonnement Avancé' },
