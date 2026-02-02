@@ -69,7 +69,7 @@ async def query_llm(client: httpx.AsyncClient, model: str, prompt: str, region: 
         if region and region != "Global":
             payload["region"] = region
             
-        response = await client.post(f"{LLM_SERVICE_URL}/api/query", json=payload, timeout=60.0)
+        response = await client.post(f"{LLM_SERVICE_URL}/api/query", json=payload, timeout=600.0)
         
         if response.status_code != 200:
             logger.error(f"LLM query failed: {model} - {response.text}")
@@ -122,7 +122,7 @@ async def analyze_brand(
 
     # Step 2: Run queries
     tasks = []
-    async with httpx.AsyncClient(timeout=120.0) as client:
+    async with httpx.AsyncClient(timeout=600.0) as client:
         for job in jobs:
             tasks.append(query_llm(client, job["model"], job["prompt_text"], job["region"]))
         results = await asyncio.gather(*tasks, return_exceptions=True)

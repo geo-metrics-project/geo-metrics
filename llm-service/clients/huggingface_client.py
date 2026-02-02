@@ -11,7 +11,7 @@ class HuggingFaceClient:
         if not api_token:
             logger.warning("HUGGINGFACE_TOKEN not set - using free tier with rate limits")
         
-        self.client = AsyncInferenceClient(token=api_token, timeout=60)
+        self.client = AsyncInferenceClient(token=api_token, timeout=600)
         logger.info("HuggingFace async client initialized")
     
     async def query_model(
