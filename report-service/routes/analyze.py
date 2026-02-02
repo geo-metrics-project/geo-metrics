@@ -84,7 +84,7 @@ async def query_llm(client: httpx.AsyncClient, model: str, prompt: str, region: 
         if region and region != "Global":
             payload["region"] = region
             
-        response = await client.post(f"{LLM_SERVICE_URL}/api/query", json=payload, timeout=600.0)
+        response = await client.post(f"{LLM_SERVICE_URL}/api/query", json=payload, timeout=60.0)
         
         if response.status_code != 200:
             logger.error(f"LLM query failed: {model} - {response.text}")
@@ -142,7 +142,7 @@ async def analyze_brand(
 
     # Step 2: Run translation + query concurrently
     async with httpx.AsyncClient(
-        timeout=600.0,
+        timeout=60.0,
         limits=httpx.Limits(max_connections=100, max_keepalive_connections=20)
     ) as client:
         tasks = [
