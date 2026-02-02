@@ -48,8 +48,8 @@ class AnalyzeResponse(BaseModel):
     successful_queries: int
     failed_queries: int
 
-async def translate_prompt(prompt: str, target_lang: str) -> str:
-    """Translate the complete prompt using Google Translate free API"""
+async def translate_prompt(client: httpx.AsyncClient, prompt: str, target_lang: str) -> str:
+    """Translate using the shared httpx client"""
     if target_lang == "default":
         return prompt
     
@@ -63,18 +63,16 @@ async def translate_prompt(prompt: str, target_lang: str) -> str:
             "q": prompt
         }
         
-        async with httpx.AsyncClient() as client:
-            response = await client.get(url, params=params, timeout=30.0)
-            
-            if response.status_code == 200:
-                result = response.json()
-                # Extract translated text from response
-                translated = "".join([item[0] for item in result[0] if item[0]])
-                logger.info(f"Translated to {target_lang}: '{prompt[:30]}...' -> '{translated[:30]}...'")
-                return translated
-            else:
-                logger.error(f"Translation API failed with status {response.status_code}")
-                return prompt
+        response = await client.get(url, params=params, timeout=30.0)
+        
+        if response.status_code == 200:
+            result = response.json()
+            translated = "".join([item[0] for item in result[0] if item[0]])
+            logger.info(f"Translated to {target_lang}: '{prompt[:30]}...' -> '{translated[:30]}...'")
+            return translated
+        else:
+            logger.error(f"Translation API failed with status {response.status_code}")
+            return prompt
     except Exception as e:
         logger.error(f"Translation to {target_lang} failed: {e}")
         return prompt
@@ -105,7 +103,7 @@ async def query_llm(client: httpx.AsyncClient, model: str, prompt: str, region: 
 
 async def translate_and_query(client: httpx.AsyncClient, model: str, prompt: str, target_lang: str, region: Optional[str]):
     """Translate prompt and query LLM in a single async task"""
-    translated_prompt = await translate_prompt(prompt, target_lang)
+    translated_prompt = await translate_prompt(client, prompt, target_lang)  # Pass client
     result = await query_llm(client, model, translated_prompt, region)
     return result, translated_prompt
 
@@ -143,16 +141,20 @@ async def analyze_brand(
                         })
 
     # Step 2: Run translation + query concurrently
-    tasks = []
-    async with httpx.AsyncClient(timeout=600.0) as client:
-        for job in job_specs:
-            tasks.append(translate_and_query(
+    async with httpx.AsyncClient(
+        timeout=600.0,
+        limits=httpx.Limits(max_connections=100, max_keepalive_connections=20)
+    ) as client:
+        tasks = [
+            translate_and_query(
                 client, 
                 job["model"], 
                 job["prompt"], 
                 job["language_code"], 
                 job["region"]
-            ))
+            )
+            for job in job_specs
+        ]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
     # Step 3: Build LLMResponseData only for successful queries
