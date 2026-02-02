@@ -236,53 +236,53 @@ const GlobalDashboard: React.FC = () => {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             
             <FilterSelect 
-              label="Region" 
+              label="Région" 
               value={filters.region} 
               options={report.regions} 
               onChange={(v) => setFilters({...filters, region: v})} 
             />
             
             <FilterSelect 
-              label="Language" 
+              label="Langue" 
               value={filters.language} 
               options={report.languages} 
               onChange={(v) => setFilters({...filters, language: v})} 
             />
 
             <FilterSelect 
-              label="Model" 
+              label="Modèle" 
               value={filters.model} 
               options={report.models} 
               onChange={(v) => setFilters({...filters, model: v})} 
             />
 
             <FilterSelect 
-              label="Keyword" 
+              label="Mot-clé" 
               value={filters.keyword} 
               options={report.keywords} 
               onChange={(v) => setFilters({...filters, keyword: v})} 
             />
 
             <FilterSelect 
-              label="Prompt Template" 
+              label="Modèle de Prompt" 
               value={filters.prompt_templates} 
               options={report.prompt_templates} 
               onChange={(v) => setFilters({...filters, prompt_templates: v})} 
             />
 
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-blue-600 dark:text-blue-400 ml-1 uppercase">Aggregate By</label>
+              <label className="text-[10px] font-bold text-blue-600 dark:text-blue-400 ml-1 uppercase">Agréger Par</label>
               <select 
                 className="bg-blue-50 dark:bg-blue-900 border-none text-blue-700 dark:text-blue-200 text-xs font-bold rounded-xl p-2.5 outline-none cursor-pointer"
                 value={filters.aggregateBy}
                 onChange={(e) => setFilters({...filters, aggregateBy: e.target.value})}
               >
-                <option value="none">None</option>
-                <option value="keyword">Keyword</option>
-                <option value="region">Region</option>
-                <option value="language_code">Language</option>
-                <option value="model">Model</option>
-                <option value="prompt_template">Prompt Template</option>
+                <option value="none">Aucun</option>
+                <option value="keyword">Mot-clé</option>
+                <option value="region">Région</option>
+                <option value="language_code">Langue</option>
+                <option value="model">Modèle</option>
+                <option value="prompt_template">Modèle de Prompt</option>
               </select>
             </div>
 
@@ -318,7 +318,7 @@ const GlobalDashboard: React.FC = () => {
                   {/* Chart for this group */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div>
-                      <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4">Distribution</h3>
+                      <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4">Répartition</h3>
                       <div className="h-64"><Pie data={groupPieData} options={{ maintainAspectRatio: false }} /></div>
                     </div>
                     <div>
@@ -344,24 +344,24 @@ const GlobalDashboard: React.FC = () => {
                       onClick={() => fetchResponses(key)}
                       className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                     >
-                      {loadingResponses[key] ? 'Loading...' : showResponses[key] ? 'Hide Raw Responses' : 'View Raw Responses'}
+                      {loadingResponses[key] ? 'Chargement...' : showResponses[key] ? 'Masquer les Réponses Brutes' : 'Voir les Réponses Brutes'}
                     </button>
                     {showResponses[key] && responses[key] && (
                       <div className="mt-4 space-y-4 max-h-96 overflow-y-auto">
                         {responses[key].map(resp => (
                           <div key={resp.id} className="bg-slate-50 dark:bg-slate-700 p-4 rounded-lg">
                             <div className="text-sm text-slate-600 dark:text-slate-400 mb-2">
-                              <strong>Model:</strong> {resp.model} | <strong>Region:</strong> {resp.region} | <strong>Language:</strong> {resp.language_code} | <strong>Keyword:</strong> {resp.keyword} | <strong>Prompt Template:</strong> {resp.prompt_template}
+                              <strong>Modèle:</strong> {resp.model} | <strong>Région:</strong> {resp.region} | <strong>Langue:</strong> {resp.language_code} | <strong>Mot-clé:</strong> {resp.keyword} | <strong>Modèle de Prompt:</strong> {resp.prompt_template}
                             </div>
                             <div className="mb-2">
                               <strong>Prompt:</strong> <span className="text-slate-700 dark:text-slate-300">{resp.prompt_text}</span>
                             </div>
                             <div className="mb-2">
-                              <strong>Response:</strong>
+                              <strong>Réponse:</strong>
                             </div>
                             <div className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap bg-white dark:bg-slate-600 p-2 rounded">{resp.response}</div>
                             <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                              <strong>KPIs:</strong> Brand Mentioned: {resp.kpis.brand_mentioned ? 'Yes' : 'No'} | Citations with Link: {resp.kpis.brand_citation_with_link ? 'Yes' : 'No'} | Competitors: {Object.keys(resp.kpis.competitor_mentions).join(', ')}
+                              <strong>KPI:</strong> Marque Mentionnée: {resp.kpis.brand_mentioned ? 'Oui' : 'Non'} | Citations avec Lien: {resp.kpis.brand_citation_with_link ? 'Oui' : 'Non'} | Concurrents: {Object.keys(resp.kpis.competitor_mentions).join(', ')}
                             </div>
                           </div>
                         ))}
@@ -387,7 +387,7 @@ const GlobalDashboard: React.FC = () => {
             {/* CHARTS */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                <h2 className="font-black text-slate-800 dark:text-slate-100 mb-4">Distribution</h2>
+                <h2 className="font-black text-slate-800 dark:text-slate-100 mb-4">Répartition</h2>
                 <div className="h-64"><Pie data={pieData} options={{ maintainAspectRatio: false }} /></div>
               </div>
               <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm">
@@ -413,7 +413,7 @@ const GlobalDashboard: React.FC = () => {
                 onClick={() => fetchResponses()}
                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
               >
-                {loadingResponses['main'] ? 'Loading...' : showResponses['main'] ? 'Hide Raw Responses' : 'View Raw Responses'}
+                {loadingResponses['main'] ? 'Chargement...' : showResponses['main'] ? 'Masquer les Réponses Brutes' : 'Voir les Réponses Brutes'}
               </button>
               {showResponses['main'] && responses['main'] && (
                 <div className="mt-4 space-y-4 max-h-96 overflow-y-auto">
@@ -454,7 +454,7 @@ const FilterSelect = ({ label, value, options, onChange }: { label: string, valu
       value={value}
       onChange={(e) => onChange(e.target.value)}
     >
-      <option value="All">All {label}s</option>
+      <option value="All">Tous les {label.toLowerCase()}</option>
       {options.map(opt => (
         <option key={opt} value={opt}>{opt}</option>
       ))}
