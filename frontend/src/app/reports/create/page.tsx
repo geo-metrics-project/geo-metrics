@@ -45,17 +45,17 @@ const ALL_LANGUAGES = [
 
 const ALL_MODELS = [
   { id: 'meta-llama/Llama-3.1-8B-Instruct', label: 'Llama 3.1 8B', desc: 'Rapide & Efficace' },
-  { id: 'openai/gpt-4-turbo', label: 'GPT-4 Turbo', desc: 'Premium & Précis' },
-  { id: 'anthropic/claude-3-opus', label: 'Claude 3 Opus', desc: 'Rédaction humaine' },
-  { id: 'google/gemini-pro-1.5', label: 'Gemini Pro 1.5', desc: 'Large contexte' },
-  { id: 'mistral/mistral-large', label: 'Mistral Large', desc: 'Top Performance EU' },
-  { id: 'meta-llama/Llama-3-70b', label: 'Llama 3 70B', desc: 'Puissant Open Source' },
-  { id: 'openai/gpt-3.5-turbo', label: 'GPT-3.5 Turbo', desc: 'Économique' },
-  { id: 'anthropic/claude-3-sonnet', label: 'Claude 3 Sonnet', desc: 'Équilibré' },
-  { id: 'google/gemma-7b', label: 'Gemma 7B', desc: 'Léger par Google' },
-  { id: 'microsoft/phi-3', label: 'Phi-3', desc: 'Petit & Malin' },
-  { id: 'perplexity/sonar-medium', label: 'Sonar Medium', desc: 'Spécialisé Recherche' },
-  { id: 'cohere/command-r', label: 'Command R+', desc: 'Optimisé RAG' }
+  { id: 'openai/gpt-oss-120b', label: 'GPT OSS 120B', desc: 'Puissant Open Source' },
+  { id: 'deepseek-ai/DeepSeek-V3.2', label: 'DeepSeek V3.2', desc: 'Modèle Avancé' },
+  { id: 'zai-org/GLM-4.7-Flash', label: 'GLM 4.7 Flash', desc: 'Ultra Rapide' },
+  { id: 'Qwen/Qwen3-VL-8B-Instruct', label: 'Qwen3 VL 8B', desc: 'Vision & Texte' },
+  { id: 'moonshotai/Kimi-K2.5', label: 'Kimi K2.5', desc: 'Conversationnel' },
+  { id: 'google/gemma-3-27b-it', label: 'Gemma 3 27B', desc: 'Par Google' },
+  { id: 'mistralai/Mistral-Large', label: 'Mistral Large', desc: 'Top Performance EU' },
+  { id: 'meta-llama/Llama-3.3-70B-Instruct', label: 'Llama 3.3 70B', desc: 'Très Puissant' },
+  { id: 'Qwen/Qwen3-235B-A22B-Instruct-2507', label: 'Qwen3 235B', desc: 'Massif & Précis' },
+  { id: 'deepseek-ai/DeepSeek-R1', label: 'DeepSeek R1', desc: 'Raisonnement Avancé' },
+  { id: 'meta-llama/Llama-4-Scout-17B-16E-Instruct', label: 'Llama 4 Scout 17B', desc: 'Nouvelle Génération' }
 ];
 
 export default function CreateReportPage() {
