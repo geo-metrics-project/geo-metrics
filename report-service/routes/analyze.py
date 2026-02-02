@@ -13,6 +13,7 @@ from clients.keto_client import create_owner_relationship
 
 logger = logging.getLogger(__name__)
 LLM_SERVICE_URL = os.getenv("LLM_SERVICE_URL", "http://llm-service:8081")
+LIBRETRANSLATE_URL = os.getenv("LIBRETRANSLATE_URL", "http://libretranslate.geo-metrics.svc.cluster.local:5000")
 
 router = APIRouter(prefix="/analyze", tags=["analysis"])
 
@@ -49,29 +50,28 @@ class AnalyzeResponse(BaseModel):
     failed_queries: int
 
 async def translate_prompt(client: httpx.AsyncClient, prompt: str, target_lang: str) -> str:
-    """Translate using the shared httpx client"""
+    """Translate using libretranslate with the shared httpx client"""
     if target_lang == "default":
         return prompt
     
     try:
-        url = "https://translate.googleapis.com/translate_a/single"
-        params = {
-            "client": "gtx",
-            "sl": "auto",
-            "tl": target_lang,
-            "dt": "t",
-            "q": prompt
+        url = f"{LIBRETRANSLATE_URL}/translate"
+        payload = {
+            "q": prompt,
+            "source": "auto",
+            "target": target_lang,
+            "format": "text"
         }
         
-        response = await client.get(url, params=params, timeout=30.0)
+        response = await client.post(url, json=payload, timeout=30.0)
         
         if response.status_code == 200:
             result = response.json()
-            translated = "".join([item[0] for item in result[0] if item[0]])
+            translated = result.get("translatedText", prompt)
             logger.info(f"Translated to {target_lang}: '{prompt[:30]}...' -> '{translated[:30]}...'")
             return translated
         else:
-            logger.error(f"Translation API failed with status {response.status_code}")
+            logger.error(f"LibreTranslate API failed with status {response.status_code}: {response.text}")
             return prompt
     except Exception as e:
         logger.error(f"Translation to {target_lang} failed: {e}")
