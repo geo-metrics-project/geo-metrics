@@ -9,7 +9,6 @@ from typing import List, Optional
 from datetime import datetime, timezone
 from database import get_db
 from services.report_generator import ReportGenerator
-from deep_translator import GoogleTranslator
 from clients.keto_client import create_owner_relationship
 
 logger = logging.getLogger(__name__)
@@ -50,17 +49,32 @@ class AnalyzeResponse(BaseModel):
     failed_queries: int
 
 async def translate_prompt(prompt: str, target_lang: str) -> str:
-    """Translate the complete prompt"""
+    """Translate the complete prompt using Google Translate free API"""
     if target_lang == "default":
         return prompt
     
     try:
-        translated = await asyncio.to_thread(
-            GoogleTranslator(source='auto', target=target_lang).translate,
-            prompt
-        )
-        logger.info(f"Translated to {target_lang}: '{prompt[:30]}...' -> '{translated[:30]}...'")
-        return translated
+        url = "https://translate.googleapis.com/translate_a/single"
+        params = {
+            "client": "gtx",
+            "sl": "auto",
+            "tl": target_lang,
+            "dt": "t",
+            "q": prompt
+        }
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, params=params, timeout=30.0)
+            
+            if response.status_code == 200:
+                result = response.json()
+                # Extract translated text from response
+                translated = "".join([item[0] for item in result[0] if item[0]])
+                logger.info(f"Translated to {target_lang}: '{prompt[:30]}...' -> '{translated[:30]}...'")
+                return translated
+            else:
+                logger.error(f"Translation API failed with status {response.status_code}")
+                return prompt
     except Exception as e:
         logger.error(f"Translation to {target_lang} failed: {e}")
         return prompt
