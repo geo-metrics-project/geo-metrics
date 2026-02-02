@@ -615,7 +615,7 @@ export default function CreateReportPage() {
                     <span className="text-gray-600 dark:text-gray-400">Langues</span>
                     <span className="font-bold text-gray-900 dark:text-white">× {form.languages.length}</span>
                   </div>
-                  <div className="flex justify-between text-xs border-t border-amber-200 dark:border-amber-800/30 pt-2">
+                  <div className="flex justify-between text-xs">
                     <span className="text-gray-600 dark:text-gray-400">Régions</span>
                     <span className="font-bold text-gray-900 dark:text-white">× {form.regions.length}</span>
                   </div>
