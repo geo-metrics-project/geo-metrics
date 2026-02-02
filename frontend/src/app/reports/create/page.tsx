@@ -581,8 +581,6 @@ export default function CreateReportPage() {
                 )}
               </div>
             </div>
-
-            {/* COLONNE DROITE : SIDEBAR KPI (1/3) */}
             {/* COLONNE DROITE : SIDEBAR KPI (1/3) */}
 <div className="space-y-6">
   <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/10 dark:to-purple-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-800/30 p-6 shadow-lg sticky top-6">
@@ -660,7 +658,7 @@ export default function CreateReportPage() {
   </div>
 
   {/* TOKEN COUNTER */}
-  <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 rounded-2xl border border-amber-200 dark:border-amber-800/30 p-6 shadow-lg">
+  <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 rounded-2xl border border-amber-200 dark:border-amber-800/30 p-6 shadow-lg sticky top-6">
     <div className="flex items-center gap-3 mb-4">
       <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30">
         <Zap className="w-5 h-5 text-amber-600 dark:text-amber-400" />
