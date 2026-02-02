@@ -141,7 +141,7 @@ async def analyze_brand(
         timeout=60.0,
         limits=httpx.Limits(max_connections=100, max_keepalive_connections=20)
     ) as client:
-        semaphore = asyncio.Semaphore(10)
+        semaphore = asyncio.Semaphore(5)
         # Step 1: Translate prompts concurrently for each language/prompt_template/keyword combination
         translation_tasks = []
         for language in request.languages:
