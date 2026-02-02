@@ -28,19 +28,7 @@ const ALL_LANGUAGES = [
   { id: 'en', label: 'Anglais' },
   { id: 'es', label: 'Espagnol' },
   { id: 'de', label: 'Allemand' },
-  { id: 'it', label: 'Italien' },
-  { id: 'pt', label: 'Portugais' },
-  { id: 'nl', label: 'Néerlandais' },
-  { id: 'pl', label: 'Polonais' },
-  { id: 'ru', label: 'Russe' },
-  { id: 'ja', label: 'Japonais' },
-  { id: 'zh', label: 'Chinois (Mandarin)' },
-  { id: 'ko', label: 'Coréen' },
-  { id: 'ar', label: 'Arabe' },
-  { id: 'tr', label: 'Turc' },
-  { id: 'sv', label: 'Suédois' },
-  { id: 'da', label: 'Danois' },
-  { id: 'fi', label: 'Finnois' }
+  { id: 'it', label: 'Italien' }
 ];
 
 const ALL_MODELS = [

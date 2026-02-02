@@ -20,9 +20,9 @@ spec:
         - containerPort: 5000
         env:
         - name: LT_DISABLE_WEB_UI
-          value: "false"
+          value: "true"
         - name: LT_LOAD_ONLY
-          value: "en,fr,es,de"
+          value: "en,fr,es,de,it"
         resources:
           requests:
             memory: "512Mi"
