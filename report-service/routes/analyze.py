@@ -50,56 +50,72 @@ class AnalyzeResponse(BaseModel):
     failed_queries: int
 
 async def translate_prompt(client: httpx.AsyncClient, prompt: str, target_lang: str) -> str:
-    """Translate using libretranslate with the shared httpx client"""
+    """Translate using libretranslate with the shared httpx client and retry logic"""
     if target_lang == "default":
         return prompt
     
-    try:
-        url = f"{LIBRETRANSLATE_URL}/translate"
-        payload = {
-            "q": prompt,
-            "source": "auto",
-            "target": target_lang,
-            "format": "text"
-        }
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            url = f"{LIBRETRANSLATE_URL}/translate"
+            payload = {
+                "q": prompt,
+                "source": "auto",
+                "target": target_lang,
+                "format": "text"
+            }
+            
+            response = await client.post(url, json=payload, timeout=30.0)
+            
+            if response.status_code == 200:
+                result = response.json()
+                translated = result.get("translatedText", prompt)
+                logger.info(f"Translated to {target_lang}: '{prompt[:30]}...' -> '{translated[:30]}...'")
+                return translated
+            else:
+                logger.warning(f"LibreTranslate API failed with status {response.status_code} (attempt {attempt + 1}/{max_retries}): {response.text}")
+                
+        except Exception as e:
+            logger.warning(f"Translation to {target_lang} failed (attempt {attempt + 1}/{max_retries}): {e}")
         
-        response = await client.post(url, json=payload, timeout=30.0)
-        
-        if response.status_code == 200:
-            result = response.json()
-            translated = result.get("translatedText", prompt)
-            logger.info(f"Translated to {target_lang}: '{prompt[:30]}...' -> '{translated[:30]}...'")
-            return translated
-        else:
-            logger.error(f"LibreTranslate API failed with status {response.status_code}: {response.text}")
-            return prompt
-    except Exception as e:
-        logger.error(f"Translation to {target_lang} failed: {e}")
-        return prompt
+        # Wait before retrying (exponential backoff)
+        if attempt < max_retries - 1:
+            await asyncio.sleep(2 ** attempt)  # 1s, 2s, 4s
+    
+    logger.error(f"Translation to {target_lang} failed after {max_retries} attempts, using original prompt")
+    return prompt
 
 async def query_llm(client: httpx.AsyncClient, model: str, prompt: str, region: Optional[str]):
-    """Query a single LLM model"""
-    try:
-        payload = {"model": model, "prompt": prompt}
-        if region and region != "Global":
-            payload["region"] = region
+    """Query a single LLM model with retry logic"""
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            payload = {"model": model, "prompt": prompt}
+            if region and region != "Global":
+                payload["region"] = region
+                
+            response = await client.post(f"{LLM_SERVICE_URL}/api/query", json=payload, timeout=60.0)
             
-        response = await client.post(f"{LLM_SERVICE_URL}/api/query", json=payload, timeout=60.0)
+            if response.status_code == 200:
+                data = response.json()
+                return {
+                    "success": True,
+                    "model": model,
+                    "prompt_text": prompt,
+                    "response": data.get("response", "")
+                }
+            else:
+                logger.warning(f"LLM query failed for {model} (attempt {attempt + 1}/{max_retries}): {response.text}")
+                
+        except Exception as e:
+            logger.warning(f"Error querying {model} (attempt {attempt + 1}/{max_retries}): {e}")
         
-        if response.status_code != 200:
-            logger.error(f"LLM query failed: {model} - {response.text}")
-            return {"success": False, "model": model, "prompt_text": prompt}
-        
-        data = response.json()
-        return {
-            "success": True,
-            "model": model,
-            "prompt_text": prompt,
-            "response": data.get("response", "")
-        }
-    except Exception as e:
-        logger.error(f"Error querying {model}: {e}")
-        return {"success": False, "model": model, "prompt_text": prompt}
+        # Wait before retrying (exponential backoff)
+        if attempt < max_retries - 1:
+            await asyncio.sleep(2 ** attempt)  # 1s, 2s, 4s
+    
+    logger.error(f"LLM query for {model} failed after {max_retries} attempts")
+    return {"success": False, "model": model, "prompt_text": prompt}
 
 async def translate_and_query(client: httpx.AsyncClient, model: str, prompt: str, target_lang: str, region: Optional[str]):
     """Translate prompt and query LLM in a single async task"""
