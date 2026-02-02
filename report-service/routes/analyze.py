@@ -49,73 +49,75 @@ class AnalyzeResponse(BaseModel):
     successful_queries: int
     failed_queries: int
 
-async def translate_prompt(client: httpx.AsyncClient, prompt: str, target_lang: str) -> str:
+async def translate_prompt(client: httpx.AsyncClient, prompt: str, target_lang: str, semaphore: asyncio.Semaphore) -> str:
     """Translate using libretranslate with the shared httpx client and retry logic"""
-    if target_lang == "default":
-        return prompt
-    
-    max_retries = 3
-    for attempt in range(max_retries):
-        try:
-            url = f"{LIBRETRANSLATE_URL}/translate"
-            payload = {
-                "q": prompt,
-                "source": "auto",
-                "target": target_lang,
-                "format": "text"
-            }
-            
-            response = await client.post(url, json=payload, timeout=30.0)
-            
-            if response.status_code == 200:
-                result = response.json()
-                translated = result.get("translatedText", prompt)
-                logger.info(f"Translated to {target_lang}: '{prompt[:30]}...' -> '{translated[:30]}...'")
-                return translated
-            else:
-                logger.warning(f"LibreTranslate API failed with status {response.status_code} (attempt {attempt + 1}/{max_retries}): {response.text}")
-                
-        except Exception as e:
-            logger.warning(f"Translation to {target_lang} failed (attempt {attempt + 1}/{max_retries}): {e}")
+    async with semaphore:
+        if target_lang == "default":
+            return prompt
         
-        # Wait before retrying (exponential backoff)
-        if attempt < max_retries - 1:
-            await asyncio.sleep(2 ** attempt)  # 1s, 2s, 4s
-    
-    logger.error(f"Translation to {target_lang} failed after {max_retries} attempts, using original prompt")
-    return prompt
-
-async def query_llm(client: httpx.AsyncClient, model: str, prompt: str, region: Optional[str]):
-    """Query a single LLM model with retry logic"""
-    max_retries = 3
-    for attempt in range(max_retries):
-        try:
-            payload = {"model": model, "prompt": prompt}
-            if region and region != "Global":
-                payload["region"] = region
-                
-            response = await client.post(f"{LLM_SERVICE_URL}/api/query", json=payload, timeout=60.0)
-            
-            if response.status_code == 200:
-                data = response.json()
-                return {
-                    "success": True,
-                    "model": model,
-                    "prompt_text": prompt,
-                    "response": data.get("response", "")
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                url = f"{LIBRETRANSLATE_URL}/translate"
+                payload = {
+                    "q": prompt,
+                    "source": "auto",
+                    "target": target_lang,
+                    "format": "text"
                 }
-            else:
-                logger.warning(f"LLM query failed for {model} (attempt {attempt + 1}/{max_retries}): {response.text}")
                 
-        except Exception as e:
-            logger.warning(f"Error querying {model} (attempt {attempt + 1}/{max_retries}): {e}")
+                response = await client.post(url, json=payload, timeout=30.0)
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    translated = result.get("translatedText", prompt)
+                    logger.info(f"Translated to {target_lang}: '{prompt[:30]}...' -> '{translated[:30]}...'")
+                    return translated
+                else:
+                    logger.warning(f"LibreTranslate API failed with status {response.status_code} (attempt {attempt + 1}/{max_retries}): {response.text}")
+                    
+            except Exception as e:
+                logger.warning(f"Translation to {target_lang} failed (attempt {attempt + 1}/{max_retries}): {e}")
+            
+            # Wait before retrying (exponential backoff)
+            if attempt < max_retries - 1:
+                await asyncio.sleep(2 ** attempt)  # 1s, 2s, 4s
         
-        # Wait before retrying (exponential backoff)
-        if attempt < max_retries - 1:
-            await asyncio.sleep(2 ** attempt)  # 1s, 2s, 4s
-    
-    logger.error(f"LLM query for {model} failed after {max_retries} attempts")
-    return {"success": False, "model": model, "prompt_text": prompt}
+        logger.error(f"Translation to {target_lang} failed after {max_retries} attempts, using original prompt")
+        return prompt
+
+async def query_llm(client: httpx.AsyncClient, model: str, prompt: str, region: Optional[str], semaphore: asyncio.Semaphore):
+    """Query a single LLM model with retry logic"""
+    async with semaphore:
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                payload = {"model": model, "prompt": prompt}
+                if region and region != "Global":
+                    payload["region"] = region
+                    
+                response = await client.post(f"{LLM_SERVICE_URL}/api/query", json=payload, timeout=60.0)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    return {
+                        "success": True,
+                        "model": model,
+                        "prompt_text": prompt,
+                        "response": data.get("response", "")
+                    }
+                else:
+                    logger.warning(f"LLM query failed for {model} (attempt {attempt + 1}/{max_retries}): {response.text}")
+                    
+            except Exception as e:
+                logger.warning(f"Error querying {model} (attempt {attempt + 1}/{max_retries}): {e}")
+            
+            # Wait before retrying (exponential backoff)
+            if attempt < max_retries - 1:
+                await asyncio.sleep(2 ** attempt)  # 1s, 2s, 4s
+        
+        logger.error(f"LLM query for {model} failed after {max_retries} attempts")
+        return {"success": False, "model": model, "prompt_text": prompt}
 
 
 @router.post("", response_model=AnalyzeResponse)
@@ -139,18 +141,27 @@ async def analyze_brand(
         timeout=60.0,
         limits=httpx.Limits(max_connections=100, max_keepalive_connections=20)
     ) as client:
-        translated_jobs = []
+        semaphore = asyncio.Semaphore(10)
+        # Step 1: Translate prompts concurrently for each language/prompt_template/keyword combination
+        translation_tasks = []
         for language in request.languages:
             for prompt_template in request.prompt_templates:
                 for keyword in request.keywords:
                     prompt = prompt_template.format(keyword=keyword)
-                    translated_prompt = await translate_prompt(client, prompt, language)
-                    translated_jobs.append({
-                        "language": language,
-                        "prompt_template": prompt_template,
-                        "keyword": keyword,
-                        "translated_prompt": translated_prompt
-                    })
+                    task = translate_prompt(client, prompt, language, semaphore)
+                    translation_tasks.append((language, prompt_template, keyword, task))
+        
+        translated_results = await asyncio.gather(*[t[3] for t in translation_tasks])
+        
+        translated_jobs = []
+        for i, (language, prompt_template, keyword, _) in enumerate(translation_tasks):
+            translated_prompt = translated_results[i]
+            translated_jobs.append({
+                "language": language,
+                "prompt_template": prompt_template,
+                "keyword": keyword,
+                "translated_prompt": translated_prompt
+            })
         
         # Step 2: For each translated prompt, create query jobs for each region and model
         job_specs = []
@@ -168,7 +179,7 @@ async def analyze_brand(
         
         # Step 3: Run LLM queries concurrently
         tasks = [
-            query_llm(client, job["model"], job["translated_prompt"], job["region"])
+            query_llm(client, job["model"], job["translated_prompt"], job["region"], semaphore)
             for job in job_specs
         ]
         results = await asyncio.gather(*tasks, return_exceptions=True)
