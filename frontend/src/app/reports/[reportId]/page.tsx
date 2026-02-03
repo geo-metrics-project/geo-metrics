@@ -204,13 +204,14 @@ const GlobalDashboard: React.FC = () => {
         else if (filters.aggregateBy === 'region') queryParams.set('region', groupKey);
         else if (filters.aggregateBy === 'keyword') queryParams.set('keyword', groupKey);
         else if (filters.aggregateBy === 'prompt_template') queryParams.set('prompt_template', groupKey);
-      } else {
-        if (filters.region !== 'All') queryParams.set('region', filters.region);
-        if (filters.language !== 'All') queryParams.set('language_code', filters.language);
-        if (filters.model !== 'All') queryParams.set('model', filters.model);
-        if (filters.keyword !== 'All') queryParams.set('keyword', filters.keyword);
-        if (filters.prompt_templates !== 'All') queryParams.set('prompt_template', filters.prompt_templates);
       }
+      // Always apply global filters
+      if (filters.region !== 'All') queryParams.set('region', filters.region);
+      if (filters.language !== 'All') queryParams.set('language_code', filters.language);
+      if (filters.model !== 'All') queryParams.set('model', filters.model);
+      if (filters.keyword !== 'All') queryParams.set('keyword', filters.keyword);
+      if (filters.prompt_templates !== 'All') queryParams.set('prompt_template', filters.prompt_templates);
+      
       queryParams.set('limit', '100');
       queryParams.set('offset', '0');
 
