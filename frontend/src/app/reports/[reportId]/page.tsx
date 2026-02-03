@@ -352,6 +352,10 @@ const GlobalDashboard: React.FC = () => {
                       <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4">Détails</h3>
                       <div className="space-y-3">
                         <div className="flex justify-between py-3 border-b border-slate-50 dark:border-slate-700 capitalize font-medium">
+                          <span>Total Réponses</span>
+                          <span className="font-bold text-slate-600 dark:text-slate-400">{kpi.total_responses}</span>
+                        </div>
+                        <div className="flex justify-between py-3 border-b border-slate-50 dark:border-slate-700 capitalize font-medium">
                           <span>{report.brand_name}</span>
                           <span className="font-bold text-green-600 dark:text-green-400">{kpi.brand_mentioned}</span>
                         </div>
@@ -420,6 +424,10 @@ const GlobalDashboard: React.FC = () => {
               <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm">
                 <h2 className="font-black text-slate-800 dark:text-slate-100 mb-4">Détails</h2>
                 <div className="space-y-3">
+                  <div className="flex justify-between py-3 border-b border-slate-50 dark:border-slate-700 capitalize font-medium">
+                    <span>Total Réponses</span>
+                    <span className="font-bold text-slate-600 dark:text-slate-400">{kpiData.total_responses}</span>
+                  </div>
                   <div className="flex justify-between py-3 border-b border-slate-50 dark:border-slate-700 capitalize font-medium">
                     <span>{report.brand_name}</span>
                     <span className="font-bold text-green-600 dark:text-green-400">{kpiData.brand_mentioned}</span>
