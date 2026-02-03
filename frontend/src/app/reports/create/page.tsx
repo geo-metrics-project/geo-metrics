@@ -278,7 +278,7 @@ export default function CreateReportPage() {
                     <div className="grid grid-cols-1 gap-6">
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Nom de la marque *</label>
-                        <input name="brand_name" value={form.brand_name} onChange={handleChange} placeholder="Ex: Spotify" className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
+                        <input name="brand_name" value={form.brand_name} onChange={handleChange} placeholder="Ex: EFREI" className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Marques concurrentes</label>
@@ -286,7 +286,7 @@ export default function CreateReportPage() {
                           <input 
                             value={newCompetitor} 
                             onChange={(e) => setNewCompetitor(e.target.value)} 
-                            placeholder="Ex: Deezer, Apple Music..." 
+                            placeholder="Ex: EPITA, ESIEA..." 
                             className="flex-1 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
                             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCompetitor())}
                           />
@@ -331,7 +331,7 @@ export default function CreateReportPage() {
                           <input 
                             value={newKeyword} 
                             onChange={(e) => setNewKeyword(e.target.value)} 
-                            placeholder="Ex: streaming music, sound..." 
+                            placeholder="Ex: Grande école informatique, école d'ingénieurs, formation en informatique..." 
                             className="flex-1 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
                             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
                           />
@@ -364,7 +364,7 @@ export default function CreateReportPage() {
                           <input 
                             value={newPromptTemplate} 
                             onChange={(e) => setNewPromptTemplate(e.target.value)} 
-                            placeholder="Ex: Que connais-tu sur {keyword}?..." 
+                            placeholder="Ex: Que connais-tu sur {keyword}?, Je souhaite rejoindre une {keyword}..." 
                             className="flex-1 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
                             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addPromptTemplate())}
                           />
@@ -468,7 +468,7 @@ export default function CreateReportPage() {
                           <input 
                             value={newRegion} 
                             onChange={(e) => setNewRegion(e.target.value)} 
-                            placeholder="Ex: France, USA..." 
+                            placeholder="Ex: France, Paris, Bordeaux..." 
                             className="flex-1 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
                             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addRegion())}
                           />
