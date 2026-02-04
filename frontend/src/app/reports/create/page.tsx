@@ -23,8 +23,7 @@ import {
 } from 'lucide-react';
 
 const ALL_LANGUAGES = [
-  { id: 'default', label: 'Original' },
-  { id: 'fr', label: 'Français' },
+  { id: 'default', label: 'Original (Français)' },
   { id: 'en', label: 'Anglais' },
   { id: 'es', label: 'Espagnol' },
   { id: 'de', label: 'Allemand' },
