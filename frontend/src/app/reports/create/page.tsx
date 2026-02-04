@@ -268,7 +268,7 @@ export default function CreateReportPage() {
                     <div className="grid grid-cols-1 gap-6">
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Nom de la marque *</label>
-                        <input name="brand_name" value={form.brand_name} onChange={handleChange} placeholder="Ex: EFREI" className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
+                        <input name="brand_name" value={form.brand_name} onChange={handleChange} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }} placeholder="Ex: EFREI" className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Marques concurrentes</label>
