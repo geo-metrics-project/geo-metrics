@@ -6,7 +6,6 @@ import {
   ArrowRight, 
   Target, 
   Sparkles, 
-  MapPin, 
   Key, 
   CheckCircle, 
   AlertCircle, 
@@ -17,13 +16,10 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
-  BarChart,
-  Trophy,
-  Award
 } from 'lucide-react';
 
 const ALL_LANGUAGES = [
-  { id: 'default', label: 'Original (Français)' },
+  { id: 'fr', label: 'Français' },
   { id: 'en', label: 'Anglais' },
   { id: 'es', label: 'Espagnol' },
   { id: 'de', label: 'Allemand' },
@@ -33,15 +29,11 @@ const ALL_LANGUAGES = [
 const ALL_MODELS = [
   { id: 'meta-llama/Llama-3.1-8B-Instruct', label: 'Llama 3.1 8B', desc: 'Rapide & Efficace' },
   { id: 'openai/gpt-oss-120b', label: 'GPT OSS 120B', desc: 'Puissant Open Source' },
-  { id: 'deepseek-ai/DeepSeek-V3.2', label: 'DeepSeek V3.2', desc: 'Modèle Avancé' },
   { id: 'zai-org/GLM-4.7-Flash', label: 'GLM 4.7 Flash', desc: 'Ultra Rapide' },
   { id: 'Qwen/Qwen3-VL-8B-Instruct', label: 'Qwen3 VL 8B', desc: 'Vision & Texte' },
   { id: 'moonshotai/Kimi-K2.5', label: 'Kimi K2.5', desc: 'Conversationnel' },
   { id: 'google/gemma-3-27b-it', label: 'Gemma 3 27B', desc: 'Par Google' },
   { id: 'mistralai/Mixtral-8x22B-Instruct-v0.1', label: 'Mixtral 8x22B', desc: 'Top Performance EU' },
-  { id: 'meta-llama/Llama-3.3-70B-Instruct', label: 'Llama 3.3 70B', desc: 'Très Puissant' },
-  { id: 'Qwen/Qwen3-235B-A22B-Instruct-2507', label: 'Qwen3 235B', desc: 'Massif & Précis' },
-  { id: 'deepseek-ai/DeepSeek-R1', label: 'DeepSeek R1', desc: 'Raisonnement Avancé' },
   { id: 'meta-llama/Llama-4-Scout-17B-16E-Instruct', label: 'Llama 4 Scout 17B', desc: 'Nouvelle Génération' }
 ];
 
@@ -60,7 +52,7 @@ export default function CreateReportPage() {
     keywords: [],
     competitor_names: [], 
     regions: ['Global'], 
-    languages: ['default'], 
+    languages: [], 
     models: ['meta-llama/Llama-3.1-8B-Instruct'],
     prompt_templates: ["Quelles marques me conseilles-tu à propos de {keyword}?"]
   });
@@ -78,6 +70,8 @@ export default function CreateReportPage() {
   const [newKeyword, setNewKeyword] = useState('');
   const [newPromptTemplate, setNewPromptTemplate] = useState('');
   const [includeGlobal, setIncludeGlobal] = useState(true);
+  const [keepOriginal, setKeepOriginal] = useState(true);
+  const [translateLanguages, setTranslateLanguages] = useState<string[]>([]);
 
   // Gestion des champs textes
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
@@ -97,6 +91,12 @@ export default function CreateReportPage() {
       return prev;
     });
   }, [includeGlobal]);
+
+  // Effet pour construire les langues
+  useEffect(() => {
+    const langs = (keepOriginal ? ['default'] : []).concat(translateLanguages);
+    setForm(prev => ({ ...prev, languages: langs }));
+  }, [keepOriginal, translateLanguages]);
 
   // Ajouter une région
   function addRegion() {
@@ -150,13 +150,11 @@ export default function CreateReportPage() {
     setForm(prev => ({ ...prev, prompt_templates: prev.prompt_templates.filter(t => t !== template) }));
   }
 
-  // Toggle Langues
-  function toggleLanguage(langId: string) {
-    setForm(prev => {
-      const exists = prev.languages.includes(langId);
-      if (exists && prev.languages.length === 1) return prev; // Garder au moins 1
-      const newLangs = exists ? prev.languages.filter(l => l !== langId) : [...prev.languages, langId];
-      return { ...prev, languages: newLangs };
+  // Toggle Langues de traduction
+  function toggleTranslateLanguage(langId: string) {
+    setTranslateLanguages(prev => {
+      const exists = prev.includes(langId);
+      return exists ? prev.filter(l => l !== langId) : [...prev, langId];
     });
   }
 
@@ -413,34 +411,51 @@ export default function CreateReportPage() {
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {ALL_LANGUAGES.slice(0, showAllLangs ? ALL_LANGUAGES.length : 6).map((lang) => {
-                          const isSelected = form.languages.includes(lang.id);
-                          return (
-                            <button
-                              key={lang.id}
-                              type="button"
-                              onClick={() => toggleLanguage(lang.id)}
-                              className={`flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-medium transition-all ${isSelected ? 'border-indigo-500 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-500 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-500' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800/80'}`}
-                            >
-                              {lang.label}
-                              {isSelected && <Check className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
-                            </button>
-                          );
-                        })}
+                      {/* Checkbox pour garder la langue originale */}
+                      <div className="mb-4">
+                        <label className="flex items-center gap-3 cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            checked={keepOriginal} 
+                            onChange={(e) => setKeepOriginal(e.target.checked)} 
+                            className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                          />
+                          <span className="text-sm text-gray-700 dark:text-gray-200">Garder la langue originale</span>
+                        </label>
                       </div>
-                      {/* Bouton Voir Plus Langues */}
-                      <button 
-                        type="button"
-                        onClick={() => setShowAllLangs(!showAllLangs)}
-                        className="mt-4 flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-indigo-600 transition-colors mx-auto"
-                      >
-                        {showAllLangs ? (
-                          <>Voir moins <ChevronUp className="w-4 h-4" /></>
-                        ) : (
-                          <>Voir les {ALL_LANGUAGES.length - 6} autres langues <ChevronDown className="w-4 h-4" /></>
-                        )}
-                      </button>
+
+                      {/* Traduire en */}
+                      <div>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-3 block">Traduire en :</span>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {ALL_LANGUAGES.slice(0, showAllLangs ? ALL_LANGUAGES.length : 4).map((lang) => {
+                            const isSelected = translateLanguages.includes(lang.id);
+                            return (
+                              <button
+                                key={lang.id}
+                                type="button"
+                                onClick={() => toggleTranslateLanguage(lang.id)}
+                                className={`flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-medium transition-all ${isSelected ? 'border-indigo-500 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-500 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-500' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800/80'}`}
+                              >
+                                {lang.label}
+                                {isSelected && <Check className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {/* Bouton Voir Plus Langues */}
+                        <button 
+                          type="button"
+                          onClick={() => setShowAllLangs(!showAllLangs)}
+                          className="mt-4 flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-indigo-600 transition-colors mx-auto"
+                        >
+                          {showAllLangs ? (
+                            <>Voir moins <ChevronUp className="w-4 h-4" /></>
+                          ) : (
+                            <>Voir la {ALL_LANGUAGES.length - 4} autre langue <ChevronDown className="w-4 h-4" /></>
+                          )}
+                        </button>
+                      </div>
                     </div>
 
                     {/* Régions */}
