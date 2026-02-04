@@ -27,7 +27,6 @@ const ALL_LANGUAGES = [
 const ALL_MODELS = [
   { id: 'meta-llama/Llama-3.1-8B-Instruct', label: 'Llama 3.1 8B', desc: 'Rapide & Efficace' },
   { id: 'openai/gpt-oss-120b', label: 'GPT OSS 120B', desc: 'Puissant Open Source' },
-  { id: 'zai-org/GLM-4.7-Flash', label: 'GLM 4.7 Flash', desc: 'Ultra Rapide' },
   { id: 'Qwen/Qwen3-VL-8B-Instruct', label: 'Qwen3 VL 8B', desc: 'Vision & Texte' },
   { id: 'moonshotai/Kimi-K2.5', label: 'Kimi K2.5', desc: 'Conversationnel' },
   { id: 'google/gemma-3-27b-it', label: 'Gemma 3 27B', desc: 'Par Google' },
