@@ -198,6 +198,13 @@ export default function CreateReportPage() {
       return;
     }
 
+    const totalRequests = form.models.length * form.keywords.length * form.prompt_templates.length * form.languages.length * form.regions.length;
+    if (totalRequests > 50) {
+      setResult({ ok: false, message: "Maximum 50 requêtes pour cette démo." });
+      setLoading(false);
+      return;
+    }
+
     try {
       const payload = {
         brand_name: form.brand_name,
