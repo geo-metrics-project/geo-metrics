@@ -14,8 +14,6 @@ import {
   Globe, 
   Brain, 
   Check,
-  ChevronDown,
-  ChevronUp,
 } from 'lucide-react';
 
 const ALL_LANGUAGES = [
@@ -59,10 +57,6 @@ export default function CreateReportPage() {
   
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<null | { ok: boolean; message?: string }>(null);
-  
-  // États pour "Voir plus"
-  const [showAllLangs, setShowAllLangs] = useState(false);
-  const [showAllModels, setShowAllModels] = useState(false);
 
   // État pour nouvelle région, concurrent et mot-clé
   const [newRegion, setNewRegion] = useState('');
@@ -413,7 +407,7 @@ export default function CreateReportPage() {
 
                       {/* Checkbox pour garder la langue originale */}
                       <div className="mb-4">
-                        <label className="flex items-center gap-3 cursor-pointer">
+                        <label className="flex items-center gap-2">
                           <input 
                             type="checkbox" 
                             checked={keepOriginal} 
@@ -428,7 +422,7 @@ export default function CreateReportPage() {
                       <div>
                         <span className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-3 block">Traduire en :</span>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                          {ALL_LANGUAGES.slice(0, showAllLangs ? ALL_LANGUAGES.length : 4).map((lang) => {
+                          {ALL_LANGUAGES.map((lang) => {
                             const isSelected = translateLanguages.includes(lang.id);
                             return (
                               <button
@@ -443,18 +437,6 @@ export default function CreateReportPage() {
                             );
                           })}
                         </div>
-                        {/* Bouton Voir Plus Langues */}
-                        <button 
-                          type="button"
-                          onClick={() => setShowAllLangs(!showAllLangs)}
-                          className="mt-4 flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-indigo-600 transition-colors mx-auto"
-                        >
-                          {showAllLangs ? (
-                            <>Voir moins <ChevronUp className="w-4 h-4" /></>
-                          ) : (
-                            <>Voir la {ALL_LANGUAGES.length - 4} autre langue <ChevronDown className="w-4 h-4" /></>
-                          )}
-                        </button>
                       </div>
                     </div>
 
@@ -529,7 +511,7 @@ export default function CreateReportPage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {ALL_MODELS.slice(0, showAllModels ? ALL_MODELS.length : 4).map((model) => {
+                      {ALL_MODELS.map((model) => {
                         const isSelected = form.models.includes(model.id);
                         return (
                           <button
@@ -549,18 +531,6 @@ export default function CreateReportPage() {
                         );
                       })}
                     </div>
-                    {/* Bouton Voir Plus Modèles */}
-                    <button 
-                      type="button"
-                      onClick={() => setShowAllModels(!showAllModels)}
-                      className="mt-4 flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-indigo-600 transition-colors mx-auto"
-                    >
-                      {showAllModels ? (
-                        <>Voir moins <ChevronUp className="w-4 h-4" /></>
-                      ) : (
-                        <>Voir les {ALL_MODELS.length - 4} autres modèles <ChevronDown className="w-4 h-4" /></>
-                      )}
-                    </button>
                   </div>
 
                   {/* ACTION */}
