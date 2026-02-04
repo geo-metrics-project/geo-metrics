@@ -237,7 +237,15 @@ export default function Home() {
                 </li>
                 <li className="flex items-center gap-3">
                   <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className="text-gray-700 dark:text-gray-300">jusqu'à 50 requêtes par rapport</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                   <span className="text-gray-700 dark:text-gray-300">3 KPI clés</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className="text-gray-700 dark:text-gray-300">Accès aux modèles économiques</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
@@ -263,7 +271,11 @@ export default function Home() {
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center gap-3">
                   <CheckCircle className="w-5 h-5 text-indigo-600 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">Audits illimités</span>
+                  <span className="text-gray-700 dark:text-gray-300">Jusqu'à 50 audits par mois</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-indigo-600 flex-shrink-0" />
+                  <span className="text-gray-700 dark:text-gray-300">jusqu'à 500 requêtes par rapport</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <CheckCircle className="w-5 h-5 text-indigo-600 flex-shrink-0" />
