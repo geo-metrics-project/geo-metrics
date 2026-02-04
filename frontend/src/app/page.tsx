@@ -346,20 +346,14 @@ export default function Home() {
                   <span className="text-lg">Analyser gratuitement</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </a>
-                <a href="/example-report" className="px-10 py-5 rounded-xl border-2 border-white/30 text-white font-bold hover:bg-white/10 transition-colors text-center">
-                  Voir un exemple de rapport
-                </a>
               </div>
               <p className="mt-6 text-sm text-indigo-200">
-                Aucune carte bancaire requise • Résultats en 2 minutes
+                Aucune carte bancaire requise • Résultats en moins d'une minute
               </p>
             </div>
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      
     </div>
   );
 }

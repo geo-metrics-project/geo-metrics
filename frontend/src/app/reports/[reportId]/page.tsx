@@ -246,7 +246,7 @@ const GlobalDashboard: React.FC = () => {
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-black text-slate-800 dark:text-slate-100 tracking-tighter capitalize">
-              {report.brand_name} <span className="text-slate-400 dark:text-slate-500">Intelligence</span>
+              {report.brand_name} <span className="text-slate-400 dark:text-slate-500">Metrics</span>
             </h1>
             <button
               onClick={handleDelete}
