@@ -260,7 +260,7 @@ export default function CreateReportPage() {
             {/* COLONNE GAUCHE : FORMULAIRE (2/3) */}
             <div className="lg:col-span-2">
               <div className="bg-white dark:bg-gray-900 rounded-2xl border border-indigo-100 dark:border-indigo-800/30 shadow-xl overflow-hidden">
-                <form onSubmit={handleSubmit} className="p-8">
+                <form onSubmit={handleSubmit} onDragOver={(e) => e.preventDefault()} onDrop={(e) => e.preventDefault()} className="p-8">
                   
                   {/* IDENTITÉ */}
                   <div className="mb-8">
