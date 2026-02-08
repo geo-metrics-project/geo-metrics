@@ -368,7 +368,7 @@ export default function CreateReportPage() {
                             onDragStart={(e) => e.dataTransfer.setData('text/plain', '{keyword}')}
                             className={`px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded text-sm font-mono cursor-grab active:cursor-grabbing hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
-                            {'{keyword}'}
+                            {'mot-clé'}
                           </div>
                         </div>
                         <div className="flex gap-2">
