@@ -365,7 +365,7 @@ export default function CreateReportPage() {
                           <span className="text-xs text-gray-500 dark:text-gray-400">Glissez-déposez :</span>
                           <div
                             draggable={!loading}
-                            onDragStart={(e) => e.dataTransfer.setData('text/plain', '{keyword}')}
+                            onDragStart={(e) => e.dataTransfer.setData('text/plain', ' {keyword} ')}
                             className={`px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded text-sm font-mono cursor-grab active:cursor-grabbing hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
                             {'mot-clé'}
@@ -378,7 +378,7 @@ export default function CreateReportPage() {
                             onDrop={(e) => {
                               e.preventDefault();
                               const text = e.dataTransfer.getData('text/plain');
-                              if (text === '{keyword}') {
+                              if (text === ' {keyword} ') {
                                 const textarea = e.target as HTMLTextAreaElement;
                                 
                                 // Try to get the character position from mouse coordinates
