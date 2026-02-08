@@ -33,8 +33,8 @@ class AnalyzeRequest(BaseModel):
     keywords: List[str] = Field(..., description="Keywords to query")
     regions: List[str] = Field(default=["Global"], description="Region contexts")
     languages: List[str] = Field(
-        default=["default"],
-        description="Language codes (use 'default' for original prompts, or language codes like 'es', 'fr')"
+        default=[],
+        description="Language codes (e.g., 'es', 'fr', 'en')"
     )
     prompt_templates: List[str] = Field(
         default=["What do you know about {keyword}? What brands come to your mind when you think of {keyword}?"],
@@ -52,8 +52,6 @@ class AnalyzeResponse(BaseModel):
 async def translate_prompt(client: httpx.AsyncClient, prompt: str, target_lang: str, semaphore: asyncio.Semaphore) -> str:
     """Translate using libretranslate with the shared httpx client and retry logic"""
     async with semaphore:
-        if target_lang == "default":
-            return prompt
         
         max_retries = 3
         for attempt in range(max_retries):
