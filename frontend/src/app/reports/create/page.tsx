@@ -63,7 +63,6 @@ export default function CreateReportPage() {
   const [newKeyword, setNewKeyword] = useState('');
   const [newPromptTemplate, setNewPromptTemplate] = useState('');
   const [includeGlobal, setIncludeGlobal] = useState(true);
-  const [keepOriginal, setKeepOriginal] = useState(true);
   const [translateLanguages, setTranslateLanguages] = useState<string[]>([]);
 
   // Gestion des champs textes
@@ -87,9 +86,8 @@ export default function CreateReportPage() {
 
   // Effet pour construire les langues
   useEffect(() => {
-    const langs = (keepOriginal ? ['default'] : []).concat(translateLanguages);
-    setForm(prev => ({ ...prev, languages: langs }));
-  }, [keepOriginal, translateLanguages]);
+    setForm(prev => ({ ...prev, languages: translateLanguages }));
+  }, [translateLanguages]);
 
   // Ajouter une région
   function addRegion() {
@@ -275,7 +273,7 @@ export default function CreateReportPage() {
                     <div className="grid grid-cols-1 gap-6">
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Nom de la marque *</label>
-                        <input name="brand_name" value={form.brand_name} onChange={handleChange} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }} placeholder="Ex: EFREI" className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
+                        <input name="brand_name" value={form.brand_name} onChange={handleChange} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }} placeholder="Ex: EFREI" disabled={loading} className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed" />
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Marques concurrentes</label>
@@ -284,13 +282,15 @@ export default function CreateReportPage() {
                             value={newCompetitor} 
                             onChange={(e) => setNewCompetitor(e.target.value)} 
                             placeholder="Ex: EPITA, ESIEA..." 
-                            className="flex-1 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+                            disabled={loading}
+                            className="flex-1 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
                             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCompetitor())}
                           />
                           <button 
                             type="button" 
                             onClick={addCompetitor} 
-                            className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium"
+                            disabled={loading}
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Ajouter
                           </button>
@@ -302,7 +302,8 @@ export default function CreateReportPage() {
                               <button 
                                 type="button" 
                                 onClick={() => removeCompetitor(competitor)} 
-                                className="text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-200 ml-1 text-lg leading-none"
+                                disabled={loading}
+                                className="text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-200 ml-1 text-lg leading-none disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 ×
                               </button>
@@ -329,13 +330,15 @@ export default function CreateReportPage() {
                             value={newKeyword} 
                             onChange={(e) => setNewKeyword(e.target.value)} 
                             placeholder="Ex: Grande école informatique, école d'ingénieurs, formation en informatique..." 
-                            className="flex-1 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+                            disabled={loading}
+                            className="flex-1 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
                             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
                           />
                           <button 
                             type="button" 
                             onClick={addKeyword} 
-                            className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium"
+                            disabled={loading}
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Ajouter
                           </button>
@@ -347,7 +350,8 @@ export default function CreateReportPage() {
                               <button 
                                 type="button" 
                                 onClick={() => removeKeyword(keyword)} 
-                                className="text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-200 ml-1 text-lg leading-none"
+                                disabled={loading}
+                                className="text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-200 ml-1 text-lg leading-none disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 ×
                               </button>
@@ -357,18 +361,47 @@ export default function CreateReportPage() {
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Templates de prompts *</label>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xs text-gray-500 dark:text-gray-400">Glissez-déposez :</span>
+                          <div
+                            draggable={!loading}
+                            onDragStart={(e) => e.dataTransfer.setData('text/plain', '{keyword}')}
+                            className={`px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded text-sm font-mono cursor-grab active:cursor-grabbing hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            {'{keyword}'}
+                          </div>
+                        </div>
                         <div className="flex gap-2">
                           <input 
                             value={newPromptTemplate} 
                             onChange={(e) => setNewPromptTemplate(e.target.value)} 
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              const text = e.dataTransfer.getData('text/plain');
+                              if (text === '{keyword}') {
+                                const input = e.target as HTMLInputElement;
+                                const start = input.selectionStart || 0;
+                                const end = input.selectionEnd || 0;
+                                const newValue = newPromptTemplate.slice(0, start) + text + newPromptTemplate.slice(end);
+                                setNewPromptTemplate(newValue);
+                                // Set cursor position after the inserted text
+                                setTimeout(() => {
+                                  input.focus();
+                                  input.setSelectionRange(start + text.length, start + text.length);
+                                }, 0);
+                              }
+                            }}
+                            onDragOver={(e) => e.preventDefault()}
                             placeholder="Ex: Que connais-tu sur {keyword}?, Je souhaite rejoindre une {keyword}..." 
-                            className="flex-1 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+                            disabled={loading}
+                            className="flex-1 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
                             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addPromptTemplate())}
                           />
                           <button 
                             type="button" 
                             onClick={addPromptTemplate} 
-                            className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium"
+                            disabled={loading}
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Ajouter
                           </button>
@@ -380,7 +413,8 @@ export default function CreateReportPage() {
                               <button 
                                 type="button" 
                                 onClick={() => removePromptTemplate(template)} 
-                                className="text-purple-500 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-200 ml-1 text-lg leading-none flex-shrink-0"
+                                disabled={loading}
+                                className="text-purple-500 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-200 ml-1 text-lg leading-none flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 ×
                               </button>
@@ -411,22 +445,8 @@ export default function CreateReportPage() {
                         </span>
                       </div>
 
-                      {/* Checkbox pour garder la langue originale */}
-                      <div className="mb-4">
-                        <label className="flex items-center gap-2">
-                          <input 
-                            type="checkbox" 
-                            checked={keepOriginal} 
-                            onChange={(e) => setKeepOriginal(e.target.checked)} 
-                            className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                          />
-                          <span className="text-sm text-gray-700 dark:text-gray-200">Garder la langue originale</span>
-                        </label>
-                      </div>
-
-                      {/* Traduire en */}
+                      {/* Langues */}
                       <div>
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-3 block">Traduire en :</span>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                           {ALL_LANGUAGES.map((lang) => {
                             const isSelected = translateLanguages.includes(lang.id);
@@ -435,7 +455,8 @@ export default function CreateReportPage() {
                                 key={lang.id}
                                 type="button"
                                 onClick={() => toggleTranslateLanguage(lang.id)}
-                                className={`flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-medium transition-all ${isSelected ? 'border-indigo-500 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-500 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-500' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800/80'}`}
+                                disabled={loading}
+                                className={`flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-medium transition-all ${isSelected ? 'border-indigo-500 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-500 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-500' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800/80'} disabled:opacity-50 disabled:cursor-not-allowed`}
                               >
                                 {lang.label}
                                 {isSelected && <Check className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
@@ -462,7 +483,8 @@ export default function CreateReportPage() {
                             id="includeGlobal" 
                             checked={includeGlobal} 
                             onChange={(e) => setIncludeGlobal(e.target.checked)} 
-                            className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                            disabled={loading}
+                            className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                           />
                           <label htmlFor="includeGlobal" className="text-sm text-gray-700 dark:text-gray-200">Inclure la région Global</label>
                         </div>
@@ -471,13 +493,15 @@ export default function CreateReportPage() {
                             value={newRegion} 
                             onChange={(e) => setNewRegion(e.target.value)} 
                             placeholder="Ex: France, Paris, Bordeaux..." 
-                            className="flex-1 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+                            disabled={loading}
+                            className="flex-1 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
                             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addRegion())}
                           />
                           <button 
                             type="button" 
                             onClick={addRegion} 
-                            className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium"
+                            disabled={loading}
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Ajouter
                           </button>
@@ -490,7 +514,8 @@ export default function CreateReportPage() {
                                 <button 
                                   type="button" 
                                   onClick={() => removeRegion(region)} 
-                                  className="text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-200 ml-1 text-lg leading-none"
+                                  disabled={loading}
+                                  className="text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-200 ml-1 text-lg leading-none disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                   ×
                                 </button>
@@ -524,7 +549,8 @@ export default function CreateReportPage() {
                             key={model.id}
                             type="button"
                             onClick={() => toggleModel(model.id)}
-                            className={`flex items-center gap-3 p-4 rounded-xl border text-left transition-all ${isSelected ? 'border-purple-500 bg-purple-50 ring-1 ring-purple-500 dark:bg-purple-900/20 dark:border-purple-500' : 'border-gray-200 bg-white hover:border-purple-200 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600'}`}
+                            disabled={loading}
+                            className={`flex items-center gap-3 p-4 rounded-xl border text-left transition-all ${isSelected ? 'border-purple-500 bg-purple-50 ring-1 ring-purple-500 dark:bg-purple-900/20 dark:border-purple-500' : 'border-gray-200 bg-white hover:border-purple-200 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600'} disabled:opacity-50 disabled:cursor-not-allowed`}
                           >
                             <div className={`flex items-center justify-center w-6 h-6 rounded-full border ${isSelected ? 'bg-purple-600 border-purple-600' : 'border-gray-300 dark:border-gray-600'}`}>
                               {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
