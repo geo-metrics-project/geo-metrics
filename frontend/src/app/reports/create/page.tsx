@@ -372,36 +372,53 @@ export default function CreateReportPage() {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <input 
+                          <textarea 
                             value={newPromptTemplate} 
                             onChange={(e) => setNewPromptTemplate(e.target.value)} 
                             onDrop={(e) => {
                               e.preventDefault();
                               const text = e.dataTransfer.getData('text/plain');
                               if (text === '{keyword}') {
-                                const input = e.target as HTMLInputElement;
-                                const start = input.selectionStart || 0;
-                                const end = input.selectionEnd || 0;
-                                const newValue = newPromptTemplate.slice(0, start) + text + newPromptTemplate.slice(end);
+                                const textarea = e.target as HTMLTextAreaElement;
+                                
+                                // Try to get the character position from mouse coordinates
+                                let insertPos = textarea.selectionStart;
+                                if ('caretPositionFromPoint' in document) {
+                                  const range = (document as any).caretPositionFromPoint(e.clientX, e.clientY);
+                                  if (range && range.offset !== undefined) {
+                                    insertPos = range.offset;
+                                  }
+                                } else if ('caretRangeFromPoint' in document) {
+                                  const range = (document as any).caretRangeFromPoint(e.clientX, e.clientY);
+                                  if (range) {
+                                    const preCaretRange = range.cloneRange();
+                                    preCaretRange.selectNodeContents(textarea);
+                                    preCaretRange.setEnd(range.endContainer, range.endOffset);
+                                    insertPos = preCaretRange.toString().length;
+                                  }
+                                }
+                                
+                                const newValue = newPromptTemplate.slice(0, insertPos) + text + newPromptTemplate.slice(insertPos);
                                 setNewPromptTemplate(newValue);
                                 // Set cursor position after the inserted text
                                 setTimeout(() => {
-                                  input.focus();
-                                  input.setSelectionRange(start + text.length, start + text.length);
+                                  textarea.focus();
+                                  textarea.setSelectionRange(insertPos + text.length, insertPos + text.length);
                                 }, 0);
                               }
                             }}
                             onDragOver={(e) => e.preventDefault()}
                             placeholder="Ex: Que connais-tu sur {keyword}?, Je souhaite rejoindre une {keyword}..." 
                             disabled={loading}
-                            className="flex-1 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
+                            rows={2}
+                            className="flex-1 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed resize-none" 
                             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addPromptTemplate())}
                           />
                           <button 
                             type="button" 
                             onClick={addPromptTemplate} 
                             disabled={loading}
-                            className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed self-start mt-1"
                           >
                             Ajouter
                           </button>
