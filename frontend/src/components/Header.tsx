@@ -97,7 +97,7 @@ export default function Header() {
           {/* Center: Nav links */}
           <div className="hidden md:flex items-center space-x-8 absolute left-1/2 -translate-x-1/2">
             <Link
-              href="/cv"
+              href="https://combaldieu.fr/cv"
               className="text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             >
               CV
