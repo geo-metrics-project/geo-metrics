@@ -209,126 +209,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="container mx-auto px-4 py-20">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Tarification simple et transparente
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Choisissez le plan qui correspond à vos besoins. Tous les plans incluent un essai gratuit.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Starter Plan */}
-            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 p-8 hover:shadow-xl transition-shadow">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Starter</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">Parfait pour tester</p>
-              <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900 dark:text-white">Gratuit</span>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">pour toujours</p>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">1 audit par mois</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">Jusqu'à 50 requêtes par rapport</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">3 KPI clés</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">Accès limité aux modèles de LLM</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">Support email</span>
-                </li>
-              </ul>
-              <a href="/auth/register" className="block w-full px-6 py-3 rounded-lg border-2 border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white font-semibold hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors text-center">
-                Commencer
-              </a>
-            </div>
-
-            {/* Pro Plan */}
-            <div className="rounded-2xl border-2 border-indigo-600 p-8 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 dark:from-indigo-900/20 dark:to-purple-900/20 relative shadow-xl">
-              <div className="absolute top-0 right-0 px-4 py-1 bg-indigo-600 text-white text-sm font-semibold rounded-bl-lg rounded-tr-2xl">
-                Populaire
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 mt-4">Pro</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">Pour les professionnels</p>
-              <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900 dark:text-white">49€</span>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">par mois, facturé annuellement</p>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-indigo-600 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">Jusqu'à 50 audits par mois</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-indigo-600 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">Jusqu'à 500 requêtes par rapport</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-indigo-600 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">Analytics avancées</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-indigo-600 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">Rapports exportables</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-indigo-600 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">Support prioritaire</span>
-                </li>
-              </ul>
-              <a href="/auth/register" className="block w-full px-6 py-3 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all hover:scale-105 active:scale-95 text-center">
-                Essayer gratuitement
-              </a>
-            </div>
-
-            {/* Enterprise Plan */}
-            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 p-8 hover:shadow-xl transition-shadow">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Enterprise</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">Pour les équipes</p>
-              <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900 dark:text-white">Sur mesure</span>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">selon vos besoins</p>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">Tout du plan Pro</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">API personnalisée</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">Support 24/7</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">SSO & contrôles</span>
-                </li>
-              </ul>
-              <a href="/contact" className="block w-full px-6 py-3 rounded-lg border-2 border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white font-semibold hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors text-center">
-                Nous contacter
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Final CTA */}
       <section className="container mx-auto px-4 py-20">
         <div className="max-w-4xl mx-auto text-center">
@@ -348,7 +228,7 @@ export default function Home() {
                 </a>
               </div>
               <p className="mt-6 text-sm text-indigo-200">
-                Aucune carte bancaire requise • Résultats en moins d'une minute
+                Résultats en moins d'une minute
               </p>
             </div>
           </div>

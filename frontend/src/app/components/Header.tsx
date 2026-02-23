@@ -1,9 +1,8 @@
 'use client';
 
-import { ArrowRight, User, LogOut, ChevronDown, Settings, BarChart, Menu, X } from 'lucide-react';
+import { User, LogOut, ChevronDown, Settings, BarChart, Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 
 export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -14,7 +13,6 @@ export default function Header() {
   const [session, setSession] = useState(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
-  const router = useRouter();
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -93,7 +91,7 @@ export default function Header() {
           >
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600" aria-hidden="true" />
             <span className="text-xl font-bold text-gray-900 dark:text-white">GEOmetrics</span>
-            <span className="hidden sm:inline text-sm px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">BETA</span>
+            <span className="hidden sm:inline text-sm px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">DEMO</span>
           </Link>
 
 
@@ -182,27 +180,6 @@ export default function Header() {
                   S'inscrire
                 </button>
               </div>
-            )}
-
-            {/* CTA Button */}
-            {isLoggedIn ? (
-              <Link
-                href="/reports/create"
-                className="hidden sm:flex group items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
-                aria-label="Lancer un audit IA"
-              >
-                <span>Lancer un audit</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
-              </Link>
-            ) : (
-              <button
-                onClick={handleLogin}
-                className="hidden sm:flex group items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
-                aria-label="Se connecter pour lancer un audit"
-              >
-                <span>Lancer un audit</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
-              </button>
             )}
 
             {/* Mobile Menu Button */}
