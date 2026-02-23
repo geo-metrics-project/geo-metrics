@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Header from "./components/Header";
+import Header from "@/components/Header";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -31,14 +31,6 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className="antialiased bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50">
-        {/* Skip to main content link for accessibility */}
-        <a
-          href="#main-content"
-          className="absolute top-0 left-0 px-4 py-2 bg-indigo-600 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 -translate-y-full focus:translate-y-0 transition-transform rounded-b-lg"
-          aria-label="Aller au contenu principal"
-        >
-          Aller au contenu principal
-        </a>
 
         {/* Header Navigation */}
         <Header />

@@ -82,7 +82,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 backdrop-blur bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
       <div className="container mx-auto px-4 py-4">
-        <nav className="flex items-center justify-between" role="navigation" aria-label="Navigation principale">
+          <nav className="relative flex items-center justify-between" role="navigation" aria-label="Navigation principale">
           {/* Logo */}
           <Link
             href="/"
@@ -94,7 +94,33 @@ export default function Header() {
             <span className="hidden sm:inline text-sm px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">DEMO</span>
           </Link>
 
-
+          {/* Center: Nav links */}
+          <div className="hidden md:flex items-center space-x-8 absolute left-1/2 -translate-x-1/2">
+            <Link
+              href="/cv"
+              className="text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            >
+              CV
+            </Link>
+            <div className="relative group">
+              <button className="inline-flex items-center gap-1 text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                Projects
+                <ChevronDown className="h-4 w-4" />
+              </button>
+              <div className="absolute left-0 mt-2 w-48 rounded-md shadow-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <div className="py-1">
+                  <Link
+                    href="https://geometrics.combaldieu.fr"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                  >
+                    GEOMetrics
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Right Section */}
           <div className="flex items-center gap-4">
@@ -206,6 +232,25 @@ export default function Header() {
             role="navigation"
             aria-label="Menu mobile"
           >
+            <Link
+              href="/cv"
+              onClick={() => setShowMobileMenu(false)}
+              className="block px-4 py-2 text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+            >
+              CV
+            </Link>
+            <div className="px-4 py-2">
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">Projects</p>
+              <Link
+                href="https://geometrics.combaldieu.fr"
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => setShowMobileMenu(false)}
+                className="block pl-3 py-1 text-sm text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                GEOMetrics
+              </Link>
+            </div>
 
             {isLoggedIn ? (
               <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2 space-y-2">
