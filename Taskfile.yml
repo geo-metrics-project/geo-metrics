@@ -1,0 +1,64 @@
+version: '3'
+
+vars:
+  NAMESPACE: geo-metrics
+
+tasks:
+  setup:ghcr-secret:
+    desc: Create GHCR pull secret
+    cmds:
+      - kubectl create secret docker-registry ghcr-secret
+          --docker-server=ghcr.io
+          --docker-username={{.GITHUB_USERNAME}}
+          --docker-password={{.GITHUB_TOKEN}}
+          -n {{.NAMESPACE}}
+          --dry-run=client -o yaml | kubectl apply -f -
+
+  deploy:nats:
+    desc: Deploy NATS via Helm
+    cmds:
+      - helm repo add nats https://nats-io.github.io/k8s/helm/charts
+      - helm repo update
+      - helm upgrade --install nats nats/nats
+          -n {{.NAMESPACE}}
+          -f infra/nats/values.yaml
+          --wait --timeout 300s
+      - kubectl apply -f infra/nats/stream-setup.yaml -n {{.NAMESPACE}}
+      - kubectl wait --for=condition=complete job/nats-stream-setup
+          -n {{.NAMESPACE}} --timeout=60s
+
+  deploy:report-service:
+    desc: Deploy report service
+    cmds:
+      - helm upgrade --install report-service ./charts/report-service
+          -n {{.NAMESPACE}}
+          --wait --timeout 120s
+
+  deploy:services:
+    desc: Deploy all services
+    deps: [deploy:report-service]
+
+  deploy:infra:
+    desc: Deploy all infrastructure
+    deps: [deploy:nats]
+
+  deploy:all:
+    desc: Deploy everything
+    cmds:
+      - task: deploy:infra
+      - task: deploy:services
+
+  logs:report-service:
+    desc: Tail report service logs
+    cmds:
+      - kubectl logs -f -l app.kubernetes.io/name=report-service -n {{.NAMESPACE}}
+
+  restart:report-service:
+    desc: Restart report service
+    cmds:
+      - kubectl rollout restart deployment/report-service -n {{.NAMESPACE}}
+
+  status:
+    desc: Show status of all deployments
+    cmds:
+      - kubectl get pods -n {{.NAMESPACE}}

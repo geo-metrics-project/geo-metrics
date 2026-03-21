@@ -30,6 +30,10 @@ spec:
         env:
         - name: PORT
           value: "8080"
+        - name: NATS_URL
+          value: "nats://nats.geo-metrics.svc.cluster.local:4222"
+        - name: NATS_SUBJECT
+          value: "reports.creation.requested"
         - name: DB_HOST
           valueFrom:
             secretKeyRef:

@@ -1,4 +1,4 @@
-.PHONY: geometrics-namespace postgres llm-service report-service frontend all
+.PHONY: geometrics-namespace postgres nats llm-service report-service frontend all
 
 SCRIPT_DIR=$(shell cd scripts/setup && pwd)
 SETUP_SCRIPT=$(SCRIPT_DIR)/setup-geometrics.sh
@@ -12,10 +12,13 @@ postgres:
 llm-service:
 	bash $(SETUP_SCRIPT) deploy_llm_service
 
+nats:
+	bash $(SETUP_SCRIPT) deploy_nats
+
 report-service:
 	bash $(SETUP_SCRIPT) deploy_report_service
 
 frontend:
 	bash $(SETUP_SCRIPT) deploy_frontend
 
-all: geometrics-namespace postgres llm-service report-service frontend
+all: geometrics-namespace postgres nats llm-service report-service frontend

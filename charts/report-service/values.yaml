@@ -1,0 +1,55 @@
+replicaCount: 1
+
+imagePullSecrets:
+  - name: ghcr-secret
+
+image:
+  repository: ghcr.io/geo-metrics-project/geo-metrics/report-service
+  tag: "0.1.0"
+  pullPolicy: Always
+  containerPort: 8080
+
+service:
+  type: ClusterIP
+  port: 8080
+
+env:
+  port: "8080"
+  natsUrl: "nats://nats:4222"
+  natsSubject: "reports.creation.requested"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 1000
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+livenessProbe:
+  path: /api/health
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  failureThreshold: 3
+
+readinessProbe:
+  path: /api/health
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  failureThreshold: 3

@@ -1,0 +1,13 @@
+# nats-values.yaml
+config:
+  jetstream:
+    enabled: true
+    fileStore:
+      pvc:
+        size: 1Gi
+  cluster:
+    enabled: false  # set true when you need HA
+
+container:
+  image:
+    tag: 2.10.14-alpine

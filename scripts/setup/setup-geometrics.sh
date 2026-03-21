@@ -90,9 +90,21 @@ deploy_llm_service() {
     log_info "LLM service deployed successfully"
 }
 
+# Deploy NATS to Kubernetes
+deploy_nats() {
+    log_step "Deploying NATS to Kubernetes"
+
+    kubectl apply -f "$PROJECT_ROOT/k8s/nats-deployment.yaml" -n "$GEOMETRICS_NAMESPACE"
+    kubectl rollout status deployment/nats -n "$GEOMETRICS_NAMESPACE" --timeout=300s
+
+    log_info "NATS deployed successfully"
+}
+
 # Deploy Report Service to Kubernetes
 deploy_report_service() {
     log_step "Deploying Report service to Kubernetes"
+
+    deploy_nats
 
     # Apply the deployment
     kubectl apply -f "$PROJECT_ROOT/k8s/report-service-deployment.yaml" -n "$GEOMETRICS_NAMESPACE"
