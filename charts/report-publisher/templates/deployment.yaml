@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "report-service.fullname" . }}
+  name: {{ include "report-publisher.fullname" . }}
   labels:
-    {{- include "report-service.labels" . | nindent 4 }}
+    {{- include "report-publisher.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "report-service.name" . }}
+      app.kubernetes.io/name: {{ include "report-publisher.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        {{- include "report-service.labels" . | nindent 8 }}
+        {{- include "report-publisher.labels" . | nindent 8 }}
     spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: report-service
+        - name: report-publisher
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
@@ -27,7 +27,7 @@ spec:
               protocol: TCP
           envFrom:
             - configMapRef:
-                name: {{ include "report-service.fullname" . }}
+                name: {{ include "report-publisher.fullname" . }}
           livenessProbe:
             httpGet:
               path: {{ .Values.livenessProbe.path }}

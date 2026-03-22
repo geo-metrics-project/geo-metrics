@@ -7,12 +7,12 @@ import (
 )
 
 func healthHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "report-service"})
+	c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "report-publisher"})
 }
 
-func analyzeHandler(publisher *natsPublisher) gin.HandlerFunc {
+func createReportHandler(publisher *natsPublisher) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req analyzeRequest
+		var req createReportRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return

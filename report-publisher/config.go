@@ -6,7 +6,6 @@ type config struct {
 	Port        string
 	NATSURL     string
 	NATSSubject string
-	NATSStream  string
 }
 
 func loadConfig() config {
@@ -25,15 +24,9 @@ func loadConfig() config {
 		natsSubject = "reports.creation.requested"
 	}
 
-	natsStream := os.Getenv("NATS_STREAM")
-	if natsStream == "" {
-		natsStream = "REPORT_EVENTS"
-	}
-
 	return config{
 		Port:        port,
 		NATSURL:     natsURL,
 		NATSSubject: natsSubject,
-		NATSStream:  natsStream,
 	}
 }

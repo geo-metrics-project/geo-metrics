@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nats-stream-setup
+  namespace: geo-metrics
+spec:
+  ttlSecondsAfterFinished: 60
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: nats-stream-setup
+          image: natsio/nats-box:latest
+          command:
+            - sh
+            - -c
+            - |
+              nats stream info REPORTS --server nats://nats:4222 2>/dev/null && \
+              echo "Stream REPORTS already exists, skipping" || \
+              cat <<'EOF' | nats stream add --config /dev/stdin --server nats://nats:4222
+              {
+                "name": "REPORTS",
+                "subjects": ["reports.>"],
+                "storage": "file",
+                "retention": "limits",
+                "max_age": 86400000000000,
+                "num_replicas": 1,
+                "discard": "old",
+                "duplicate_window": 120000000000
+              }
+              EOF

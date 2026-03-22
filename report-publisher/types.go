@@ -1,6 +1,6 @@
 package main
 
-type analyzeRequest struct {
+type createReportRequest struct {
 	BrandName       string   `json:"brand_name" binding:"required"`
 	CompetitorNames []string `json:"competitor_names"`
 	Models          []string `json:"models" binding:"required"`
@@ -10,18 +10,18 @@ type analyzeRequest struct {
 	PromptTemplates []string `json:"prompt_templates" binding:"required"`
 }
 
-type analyzeResponse struct {
+type createReportResponse struct {
 	ReportID  string `json:"report_id"`
 	BrandName string `json:"brand_name"`
 	Timestamp string `json:"timestamp"`
 }
 
 type reportCreationRequestedEvent struct {
-	EventID    string         `json:"event_id"`
-	EventType  string         `json:"event_type"`
-	OccurredAt string         `json:"occurred_at"`
-	Source     string         `json:"source"`
-	UserID     string         `json:"user_id,omitempty"`
-	ReportID   string         `json:"report_id"`
-	Payload    analyzeRequest `json:"payload"`
+	EventID    string              `json:"event_id"`
+	EventType  string              `json:"event_type"`
+	OccurredAt string              `json:"occurred_at"`
+	Source     string              `json:"source"`
+	UserID     string              `json:"user_id,omitempty"`
+	ReportID   string              `json:"report_id"`
+	Payload    createReportRequest `json:"payload"`
 }

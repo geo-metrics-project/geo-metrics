@@ -16,7 +16,7 @@ type natsPublisher struct {
 func newNATSPublisher(url, subject string) (*natsPublisher, error) {
 	conn, err := nats.Connect(
 		url,
-		nats.Name("report-service-publisher"),
+		nats.Name("report-publisher"),
 		nats.Timeout(5*time.Second),
 		nats.ReconnectWait(2*time.Second),
 		nats.MaxReconnects(-1),

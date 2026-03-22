@@ -34,7 +34,7 @@ func main() {
 	}
 
 	go func() {
-		log.Printf("report-service listening on :%s", cfg.Port)
+		log.Printf("report-publisher listening on :%s", cfg.Port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("server error: %v", err)
 		}

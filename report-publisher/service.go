@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func createReport(userID string, req analyzeRequest, publisher *natsPublisher) (analyzeResponse, error) {
+func createReport(userID string, req createReportRequest, publisher *natsPublisher) (createReportResponse, error) {
 	reportID := "rpt_" + uuid.NewString()
 	now := time.Now().UTC().Format(time.RFC3339)
 
@@ -15,7 +15,7 @@ func createReport(userID string, req analyzeRequest, publisher *natsPublisher) (
 		EventID:    uuid.NewString(),
 		EventType:  "report.creation.requested",
 		OccurredAt: now,
-		Source:     "report-service",
+		Source:     "report-publisher",
 		UserID:     userID,
 		ReportID:   reportID,
 		Payload:    req,
@@ -23,14 +23,14 @@ func createReport(userID string, req analyzeRequest, publisher *natsPublisher) (
 
 	body, err := json.Marshal(evt)
 	if err != nil {
-		return analyzeResponse{}, err
+		return createReportResponse{}, err
 	}
 
 	if err := publisher.Publish(body); err != nil {
-		return analyzeResponse{}, err
+		return createReportResponse{}, err
 	}
 
-	return analyzeResponse{
+	return createReportResponse{
 		ReportID:  reportID,
 		BrandName: req.BrandName,
 		Timestamp: now,

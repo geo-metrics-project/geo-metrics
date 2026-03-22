@@ -1,4 +1,4 @@
-module github.com/geo-metrics-project/geo-metrics/report-service
+module github.com/geo-metrics-project/geo-metrics/report-publisher
 
 go 1.25.0
 

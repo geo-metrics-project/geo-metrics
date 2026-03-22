@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "report-service.fullname" . }}
+  name: {{ include "report-publisher.fullname" . }}
   labels:
-    {{- include "report-service.labels" . | nindent 4 }}
+    {{- include "report-publisher.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   selector:
-    app.kubernetes.io/name: {{ include "report-service.name" . }}
+    app.kubernetes.io/name: {{ include "report-publisher.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
   ports:
     - name: http
