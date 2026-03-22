@@ -4,15 +4,6 @@ vars:
   NAMESPACE: geo-metrics
 
 tasks:
-  setup:ghcr-secret:
-    desc: Create GHCR pull secret
-    cmds:
-      - kubectl create secret docker-registry ghcr-secret
-          --docker-server=ghcr.io
-          --docker-username={{.GITHUB_USERNAME}}
-          --docker-password={{.GITHUB_TOKEN}}
-          -n {{.NAMESPACE}}
-          --dry-run=client -o yaml | kubectl apply -f -
 
   deploy:nats:
     desc: Deploy NATS via Helm

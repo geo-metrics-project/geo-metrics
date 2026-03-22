@@ -1,23 +1,15 @@
-FROM python:3.9-slim
+FROM golang:1.24-alpine AS builder
 
-# Create non-root user
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+WORKDIR /src
+COPY go.mod go.sum* ./
+RUN go mod download
 
-WORKDIR /app
-
-# Install dependencies as root
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application files
 COPY . .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /bin/report-service .
 
-# Change ownership to non-root user
-RUN chown -R appuser:appuser /app
-
-# Switch to non-root user
-USER appuser
+FROM gcr.io/distroless/static-debian12:nonroot
+WORKDIR /app
+COPY --from=builder /bin/report-service /app/report-service
 
 EXPOSE 8080
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+ENTRYPOINT ["/app/report-service"]

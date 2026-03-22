@@ -1,8 +1,5 @@
 replicaCount: 1
 
-imagePullSecrets:
-  - name: ghcr-secret
-
 image:
   repository: ghcr.io/geo-metrics-project/geo-metrics/report-service
   tag: "0.1.0"
