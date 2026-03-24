@@ -44,9 +44,16 @@ tasks:
           -n {{.NAMESPACE}}
           --wait --timeout 120s
 
+  deploy:report-consumer:
+    desc: Deploy report consumer service
+    cmds:
+      - helm upgrade --install report-consumer ./charts/report-consumer
+          -n {{.NAMESPACE}}
+          --wait --timeout 120s
+
   deploy:services:
     desc: Deploy all services
-    deps: [deploy:report-publisher]
+    deps: [deploy:report-publisher, deploy:report-consumer]
 
   deploy:infra:
     desc: Deploy all infrastructure
@@ -63,10 +70,20 @@ tasks:
     cmds:
       - kubectl logs -f -l app.kubernetes.io/name=report-publisher -n {{.NAMESPACE}}
 
+  logs:report-consumer:
+    desc: Tail report consumer logs
+    cmds:
+      - kubectl logs -f -l app.kubernetes.io/name=report-consumer -n {{.NAMESPACE}}
+
   restart:report-publisher:
     desc: Restart report service
     cmds:
       - kubectl rollout restart deployment/report-publisher -n {{.NAMESPACE}}
+
+  restart:report-consumer:
+    desc: Restart report consumer service
+    cmds:
+      - kubectl rollout restart deployment/report-consumer -n {{.NAMESPACE}}
 
   status:
     desc: Show status of all deployments

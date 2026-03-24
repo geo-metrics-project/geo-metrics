@@ -1,0 +1,43 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/geo-metrics-project/geo-metrics/report-consumer
+  tag: "latest"
+  pullPolicy: Always
+
+env:
+  natsUrl: "nats://nats:4222"
+  natsStream: "REPORTS"
+  natsConsumer: "report-consumer-reports-writer"
+  natsConsumeSubject: "reports.creation.requested"
+  postgresHost: "postgres-postgresql"
+  postgresPort: "5432"
+  postgresDb: "geometrics"
+  postgresUser: "geometrics"
+  postgresSslMode: "disable"
+  postgresAuthSecretName: "postgres-auth"
+  postgresAuthPasswordKey: "password"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 300m
+    memory: 256Mi
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 1000
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
