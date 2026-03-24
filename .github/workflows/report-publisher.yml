@@ -1,4 +1,4 @@
-name: Build and Push Report Pubisher
+name: Build and Push Report Publisher
 
 on:
   workflow_dispatch:  # Allow manual triggering
