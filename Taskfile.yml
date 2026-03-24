@@ -5,6 +5,25 @@ vars:
 
 tasks:
 
+  deploy:postgres:
+    desc: Deploy PostgreSQL via Helm
+    cmds:
+      - |
+        test -n "$POSTGRES_ADMIN_PASSWORD" || (echo "POSTGRES_ADMIN_PASSWORD is required" && exit 1)
+        test -n "$POSTGRES_APP_PASSWORD" || (echo "POSTGRES_APP_PASSWORD is required" && exit 1)
+      - |
+        kubectl create secret generic postgres-auth \
+          -n {{.NAMESPACE}} \
+          --from-literal=postgres-password="$POSTGRES_ADMIN_PASSWORD" \
+          --from-literal=password="$POSTGRES_APP_PASSWORD" \
+          --dry-run=client -o yaml | kubectl apply -f -
+      - helm repo add bitnami https://charts.bitnami.com/bitnami
+      - helm repo update
+      - helm upgrade --install postgres bitnami/postgresql
+          -n {{.NAMESPACE}}
+          -f infra/postgres/values.yaml
+          --wait --timeout 300s
+
   deploy:nats:
     desc: Deploy NATS via Helm
     cmds:
@@ -31,7 +50,7 @@ tasks:
 
   deploy:infra:
     desc: Deploy all infrastructure
-    deps: [deploy:nats]
+    deps: [deploy:nats, deploy:postgres]
 
   deploy:all:
     desc: Deploy everything
