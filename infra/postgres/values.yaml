@@ -28,19 +28,6 @@ primary:
         END;
         $$ LANGUAGE plpgsql;
 
-        -- Tracks consumed event IDs to guarantee idempotent processing.
-        CREATE TABLE IF NOT EXISTS processed_events (
-            event_id      TEXT PRIMARY KEY,
-            stream        VARCHAR(128) NOT NULL,
-            subject       VARCHAR(255) NOT NULL,
-            report_id     TEXT,
-            occurred_at   TIMESTAMPTZ NOT NULL,
-            received_at   TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            processed_at  TIMESTAMPTZ,
-            status        VARCHAR(20) NOT NULL DEFAULT 'processing',
-            error_message TEXT
-        );
-
         -- Reports table keyed by externally generated IDs like rpt_<uuid>.
         CREATE TABLE IF NOT EXISTS reports (
             id TEXT PRIMARY KEY,
@@ -109,8 +96,6 @@ primary:
         CREATE INDEX IF NOT EXISTS idx_llm_responses_source_event ON llm_responses(source_event_id);
         CREATE INDEX IF NOT EXISTS idx_llm_responses_status ON llm_responses(status);
         CREATE INDEX IF NOT EXISTS idx_reports_status ON reports(status);
-        CREATE INDEX IF NOT EXISTS idx_processed_events_report ON processed_events(report_id);
-        CREATE INDEX IF NOT EXISTS idx_processed_events_status ON processed_events(status);
 
         -- Grant permissions to geometrics user
         GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO geometrics;

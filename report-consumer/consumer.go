@@ -151,31 +151,6 @@ func (c *reportConsumer) handleMessage(ctx context.Context, msg *nats.Msg) error
 		_ = tx.Rollback()
 	}()
 
-	res, err := tx.ExecContext(ctx, `
-		INSERT INTO processed_events (event_id, stream, subject, report_id, occurred_at, status)
-		VALUES ($1, $2, $3, $4, $5, 'processing')
-		ON CONFLICT (event_id) DO NOTHING
-	`, evt.EventID, c.stream, msg.Subject, evt.ReportID, occurredAt)
-	if err != nil {
-		msg.Nak()
-		return fmt.Errorf("insert processed_events: %w", err)
-	}
-
-	rows, err := res.RowsAffected()
-	if err != nil {
-		msg.Nak()
-		return fmt.Errorf("processed_events rows affected: %w", err)
-	}
-
-	if rows == 0 {
-		if err := tx.Commit(); err != nil {
-			msg.Nak()
-			return fmt.Errorf("commit duplicate event: %w", err)
-		}
-		msg.Ack()
-		return nil
-	}
-
 	_, err = tx.ExecContext(ctx, `
 		INSERT INTO reports (
 			id,
@@ -218,24 +193,9 @@ func (c *reportConsumer) handleMessage(ctx context.Context, msg *nats.Msg) error
 		occurredAt,
 	)
 	if err != nil {
-		_, _ = tx.ExecContext(ctx, `
-			UPDATE processed_events
-			SET status = 'failed', error_message = $2, processed_at = CURRENT_TIMESTAMP
-			WHERE event_id = $1
-		`, evt.EventID, truncateForDB(err.Error(), 1000))
-		_ = tx.Commit()
-		msg.Ack()
-		return fmt.Errorf("upsert report: %w", err)
-	}
-
-	_, err = tx.ExecContext(ctx, `
-		UPDATE processed_events
-		SET status = 'completed', error_message = NULL, processed_at = CURRENT_TIMESTAMP
-		WHERE event_id = $1
-	`, evt.EventID)
-	if err != nil {
+		_ = tx.Rollback()
 		msg.Nak()
-		return fmt.Errorf("finalize processed_events: %w", err)
+		return fmt.Errorf("upsert report: %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -261,11 +221,4 @@ func nullableString(v string) any {
 		return nil
 	}
 	return v
-}
-
-func truncateForDB(s string, max int) string {
-	if max <= 0 || len(s) <= max {
-		return s
-	}
-	return s[:max]
 }
