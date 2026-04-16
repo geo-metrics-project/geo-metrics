@@ -1,0 +1,45 @@
+replicaCount: 1
+
+image:
+  repository: libretranslate/libretranslate
+  tag: "latest"
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 5000
+
+persistence:
+  enabled: true
+  db:
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 1Gi
+  models:
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 2Gi
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: 2
+    memory: 4Gi
+
+appSettings:
+  apiKeys: "false"
+  disableWebUi: "true"
+  updateModels: "true"
+  debug: "false"
+
+appConfig:
+  loadOnly: "en,fr,es,de,it"
+  threads: "4"
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

@@ -10,10 +10,15 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sethvargo/go-envconfig"
 )
 
 func main() {
-	cfg := loadConfig()
+	ctx := context.Background()
+	var cfg config
+	if err := envconfig.Process(ctx, &cfg); err != nil {
+		log.Fatal(err)
+	}
 
 	publisher, err := newNATSPublisher(cfg.NATSURL, cfg.NATSSubject)
 	if err != nil {

@@ -6,10 +6,16 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/sethvargo/go-envconfig"
 )
 
 func main() {
-	cfg := loadConfig()
+	ctx := context.Background()
+	var cfg config
+	if err := envconfig.Process(ctx, &cfg); err != nil {
+		log.Fatal(err)
+	}
 
 	consumer, err := newReportConsumer(cfg)
 	if err != nil {
@@ -17,11 +23,11 @@ func main() {
 	}
 	defer consumer.Close()
 
-	ctx, cancel := context.WithCancel(context.Background())
+	runCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	go func() {
-		if err := consumer.Run(ctx); err != nil {
+		if err := consumer.Run(runCtx); err != nil {
 			log.Printf("consumer stopped with error: %v", err)
 		}
 	}()
@@ -29,6 +35,5 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	<-stop
-	cancel()
 	log.Print("report-consumer shutting down")
 }

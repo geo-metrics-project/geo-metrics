@@ -37,6 +37,16 @@ tasks:
       - kubectl wait --for=condition=complete job/nats-stream-setup
           -n {{.NAMESPACE}} --timeout=60s
 
+  deploy:libretranslate:
+    desc: Deploy LibreTranslate via Helm
+    cmds:
+      - helm repo add libretranslate https://libretranslate.github.io/helm-chart/
+      - helm repo update
+      - helm upgrade --install libretranslate libretranslate/libretranslate
+          -n {{.NAMESPACE}}
+          -f infra/libretranslate/values.yaml
+          --wait --timeout 300s
+
   deploy:report-publisher:
     desc: Deploy report service
     cmds:

@@ -6,6 +6,7 @@ require (
 	github.com/gin-gonic/gin v1.12.0
 	github.com/google/uuid v1.6.0
 	github.com/nats-io/nats.go v1.49.0
+	github.com/sethvargo/go-envconfig v1.3.0
 )
 
 require (
