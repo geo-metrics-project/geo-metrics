@@ -28,7 +28,7 @@ primary:
         END;
         $$ LANGUAGE plpgsql;
 
-        -- Reports table keyed by externally generated IDs like rpt_<uuid>.
+        -- Reports table keyed by externally generated IDs.
         CREATE TABLE IF NOT EXISTS reports (
             id TEXT PRIMARY KEY,
             source_event_id TEXT NOT NULL UNIQUE,

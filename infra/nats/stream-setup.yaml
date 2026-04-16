@@ -29,3 +29,18 @@ spec:
                 "duplicate_window": 120000000000
               }
               EOF
+
+              nats stream info PLANNER --server nats://nats:4222 2>/dev/null && \
+              echo "Stream PLANNER already exists, skipping" || \
+              cat <<'EOF' | nats stream add --config /dev/stdin --server nats://nats:4222
+              {
+                "name": "PLANNER",
+                "subjects": ["planner.>"],
+                "storage": "file",
+                "retention": "limits",
+                "max_age": 86400000000000,
+                "num_replicas": 1,
+                "discard": "old",
+                "duplicate_window": 120000000000
+              }
+              EOF

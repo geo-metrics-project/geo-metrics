@@ -8,15 +8,6 @@ tasks:
   deploy:postgres:
     desc: Deploy PostgreSQL via Helm
     cmds:
-      - |
-        test -n "$POSTGRES_ADMIN_PASSWORD" || (echo "POSTGRES_ADMIN_PASSWORD is required" && exit 1)
-        test -n "$POSTGRES_APP_PASSWORD" || (echo "POSTGRES_APP_PASSWORD is required" && exit 1)
-      - |
-        kubectl create secret generic postgres-auth \
-          -n {{.NAMESPACE}} \
-          --from-literal=postgres-password="$POSTGRES_ADMIN_PASSWORD" \
-          --from-literal=password="$POSTGRES_APP_PASSWORD" \
-          --dry-run=client -o yaml | kubectl apply -f -
       - helm repo add bitnami https://charts.bitnami.com/bitnami
       - helm repo update
       - helm upgrade --install postgres bitnami/postgresql
@@ -74,16 +65,6 @@ tasks:
     cmds:
       - task: deploy:infra
       - task: deploy:services
-
-  logs:report-publisher:
-    desc: Tail report service logs
-    cmds:
-      - kubectl logs -f -l app.kubernetes.io/name=report-publisher -n {{.NAMESPACE}}
-
-  logs:report-consumer:
-    desc: Tail report consumer logs
-    cmds:
-      - kubectl logs -f -l app.kubernetes.io/name=report-consumer -n {{.NAMESPACE}}
 
   restart:report-publisher:
     desc: Restart report service
