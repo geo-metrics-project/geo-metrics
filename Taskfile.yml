@@ -66,9 +66,23 @@ tasks:
           -n {{.NAMESPACE}}
           --wait --timeout 120s
 
+  deploy:llm-planner:
+    desc: Deploy llm planner service
+    cmds:
+      - helm upgrade --install llm-planner ./charts/llm-planner
+          -n {{.NAMESPACE}}
+          --wait --timeout 120s
+
+  deploy:llm-worker:
+    desc: Deploy llm worker service
+    cmds:
+      - helm upgrade --install llm-worker ./charts/llm-worker
+          -n {{.NAMESPACE}}
+          --wait --timeout 120s
+
   deploy:services:
     desc: Deploy all services
-    deps: [deploy:report-publisher, deploy:report-consumer, deploy:translation-planner, deploy:translation-worker]
+    deps: [deploy:report-publisher, deploy:report-consumer, deploy:translation-planner, deploy:translation-worker, deploy:llm-planner, deploy:llm-worker]
 
   deploy:infra:
     desc: Deploy all infrastructure
@@ -99,6 +113,16 @@ tasks:
     desc: Restart translation worker service
     cmds:
       - kubectl rollout restart deployment/translation-worker -n {{.NAMESPACE}}
+
+  restart:llm-planner:
+    desc: Restart llm planner service
+    cmds:
+      - kubectl rollout restart deployment/llm-planner -n {{.NAMESPACE}}
+
+  restart:llm-worker:
+    desc: Restart llm worker service
+    cmds:
+      - kubectl rollout restart deployment/llm-worker -n {{.NAMESPACE}}
 
   status:
     desc: Show status of all deployments

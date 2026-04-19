@@ -1,0 +1,40 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/geo-metrics-project/geo-metrics/llm-worker
+  tag: "latest"
+  pullPolicy: Always
+
+env:
+  natsUrl: "nats://nats:4222"
+  natsStream: "PLANNER"
+  natsConsumer: "llm-worker-jobs"
+  natsConsumeSubject: "planner.llm.job.created"
+  natsResultSubject: "llm.response.completed"
+  natsErrorSubject: "llm.response.failed"
+  llmApiUrl: "http://llm-service:8081/api/analyze"
+  llmApiKey: ""
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 400m
+    memory: 256Mi
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 1000
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL

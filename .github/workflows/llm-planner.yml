@@ -1,15 +1,15 @@
-name: Build and Push Translation Worker
+name: Build and Push LLM Planner
 
 on:
   workflow_dispatch:
   push:
     branches: [ master ]
     paths:
-      - 'translation-worker/**'
+      - 'llm-planner/**'
   pull_request:
     branches: [ master ]
     paths:
-      - 'translation-worker/**'
+      - 'llm-planner/**'
 
 jobs:
   build-and-push:
@@ -32,9 +32,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Translation Worker Docker image
+      - name: Build and push LLM Planner Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./translation-worker
+          context: ./llm-planner
           push: true
-          tags: ghcr.io/${{ github.repository }}/translation-worker:latest
+          tags: ghcr.io/${{ github.repository }}/llm-planner:latest
