@@ -20,7 +20,7 @@ spec:
               cat <<'EOF' | nats stream add --config /dev/stdin --server nats://nats:4222
               {
                 "name": "REPORTS",
-                "subjects": ["reports.>", "llm.>"],
+                "subjects": ["reports.>"],
                 "storage": "file",
                 "retention": "limits",
                 "max_age": 86400000000000,
