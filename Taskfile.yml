@@ -52,9 +52,23 @@ tasks:
           -n {{.NAMESPACE}}
           --wait --timeout 120s
 
+  deploy:translation-planner:
+    desc: Deploy translation planner service
+    cmds:
+      - helm upgrade --install translation-planner ./charts/translation-planner
+          -n {{.NAMESPACE}}
+          --wait --timeout 120s
+
+  deploy:translation-worker:
+    desc: Deploy translation worker service
+    cmds:
+      - helm upgrade --install translation-worker ./charts/translation-worker
+          -n {{.NAMESPACE}}
+          --wait --timeout 120s
+
   deploy:services:
     desc: Deploy all services
-    deps: [deploy:report-publisher, deploy:report-consumer]
+    deps: [deploy:report-publisher, deploy:report-consumer, deploy:translation-planner, deploy:translation-worker]
 
   deploy:infra:
     desc: Deploy all infrastructure
@@ -75,6 +89,16 @@ tasks:
     desc: Restart report consumer service
     cmds:
       - kubectl rollout restart deployment/report-consumer -n {{.NAMESPACE}}
+
+  restart:translation-planner:
+    desc: Restart translation planner service
+    cmds:
+      - kubectl rollout restart deployment/translation-planner -n {{.NAMESPACE}}
+
+  restart:translation-worker:
+    desc: Restart translation worker service
+    cmds:
+      - kubectl rollout restart deployment/translation-worker -n {{.NAMESPACE}}
 
   status:
     desc: Show status of all deployments

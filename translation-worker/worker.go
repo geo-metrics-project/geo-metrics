@@ -201,9 +201,13 @@ func (w *translationWorker) publishSuccess(job translationJobCreatedEvent, trans
 		JobID:         job.JobID,
 		SourceEventID: job.EventID,
 		Payload: translationCompletedPayload{
+			PromptTemplate: job.Payload.PromptTemplate,
+			Keyword:        job.Payload.Keyword,
 			TargetLanguage: job.Payload.TargetLanguage,
 			SourceText:     job.Payload.SourceText,
 			TranslatedText: translatedText,
+			Models:         job.Payload.Models,
+			Regions:        job.Payload.Regions,
 		},
 	}
 
@@ -231,9 +235,13 @@ func (w *translationWorker) publishFailure(job translationJobCreatedEvent, jobEr
 		JobID:         job.JobID,
 		SourceEventID: job.EventID,
 		Payload: translationFailedPayload{
+			PromptTemplate: job.Payload.PromptTemplate,
+			Keyword:        job.Payload.Keyword,
 			TargetLanguage: job.Payload.TargetLanguage,
 			SourceText:     job.Payload.SourceText,
 			ErrorMessage:   jobErr.Error(),
+			Models:         job.Payload.Models,
+			Regions:        job.Payload.Regions,
 		},
 	}
 

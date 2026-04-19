@@ -49,4 +49,6 @@ type translationJobPayload struct {
 	TargetLanguage string `json:"target_language"`
 	SourceLanguage string `json:"source_language"`
 	SourceText     string `json:"source_text"`
+	Models         []string `json:"models"`
+	Regions        []string `json:"regions"`
 }

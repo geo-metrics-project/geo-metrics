@@ -108,6 +108,9 @@ func (p *translationPlanner) handleMessage(msg *nats.Msg) error {
 		return errors.New("invalid event: report_id is required")
 	}
 
+	models := normalizeList(evt.Payload.Models)
+	regions := normalizeList(evt.Payload.Regions)
+
 	totalJobs := 0
 	now := time.Now().UTC().Format(time.RFC3339)
 
@@ -145,6 +148,8 @@ func (p *translationPlanner) handleMessage(msg *nats.Msg) error {
 						TargetLanguage: targetLanguage,
 						SourceLanguage: "en",
 						SourceText:     sourceText,
+						Models:         models,
+						Regions:        regions,
 					},
 				}
 
@@ -200,4 +205,17 @@ func makeJobID(reportID, promptTemplate, keyword, targetLanguage string) string 
 	raw := reportID + "|" + promptTemplate + "|" + keyword + "|" + targetLanguage
 	h := sha1.Sum([]byte(raw))
 	return "job_" + hex.EncodeToString(h[:])
+}
+
+func normalizeList(values []string) []string {
+	items := make([]string, 0, len(values))
+	for _, value := range values {
+		trimmed := strings.TrimSpace(value)
+		if trimmed == "" {
+			continue
+		}
+		items = append(items, trimmed)
+	}
+
+	return items
 }
