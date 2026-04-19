@@ -1,0 +1,6 @@
+apiVersion: v2
+name: translation-planner
+description: Helm chart for GEO-Metrics translation-planner
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

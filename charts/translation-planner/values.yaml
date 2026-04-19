@@ -1,0 +1,38 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/geo-metrics-project/geo-metrics/translation-planner
+  tag: "latest"
+  pullPolicy: Always
+
+env:
+  natsUrl: "nats://nats:4222"
+  natsStream: "REPORTS"
+  natsConsumer: "translation-planner-jobs"
+  natsConsumeSubject: "reports.creation.requested"
+  natsJobSubject: "planner.translation.job.created"
+  natsPlanSubject: "reports.translation.jobs.planned"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 300m
+    memory: 256Mi
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 1000
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
