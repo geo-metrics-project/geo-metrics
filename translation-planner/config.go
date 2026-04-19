@@ -1,5 +1,4 @@
 package main
-package main
 
 type config struct {
 	NATSURL            string `env:"NATS_URL,required"`
