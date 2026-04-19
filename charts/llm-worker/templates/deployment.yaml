@@ -24,6 +24,12 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "llm-worker.fullname" . }}
+          env:
+            - name: HUGGINGFACE_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.huggingfaceTokenSecretName }}
+                  key: {{ .Values.env.huggingfaceTokenSecretKey }}
           securityContext:
             {{- toYaml .Values.containerSecurityContext | nindent 12 }}
           resources:

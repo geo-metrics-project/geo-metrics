@@ -11,5 +11,4 @@ data:
   NATS_CONSUME_SUBJECT: {{ .Values.env.natsConsumeSubject | quote }}
   NATS_RESULT_SUBJECT: {{ .Values.env.natsResultSubject | quote }}
   NATS_ERROR_SUBJECT: {{ .Values.env.natsErrorSubject | quote }}
-  LLM_API_URL: {{ .Values.env.llmApiUrl | quote }}
-  LLM_API_KEY: {{ .Values.env.llmApiKey | quote }}
+  HUGGINGFACE_API_URL: {{ .Values.env.huggingfaceApiUrl | quote }}

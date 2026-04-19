@@ -25,7 +25,7 @@ type llmWorker struct {
 	resultSubject  string
 	errorSubject   string
 	apiURL         string
-	apiKey         string
+	apiToken       string
 	httpClient     *http.Client
 }
 
@@ -55,8 +55,8 @@ func newLLMWorker(cfg config) (*llmWorker, error) {
 		consumeSubject: cfg.NATSConsumeSubject,
 		resultSubject:  cfg.NATSResultSubject,
 		errorSubject:   cfg.NATSErrorSubject,
-		apiURL:         strings.TrimSpace(cfg.LLMAPIURL),
-		apiKey:         strings.TrimSpace(cfg.LLMAPIKey),
+		apiURL:         strings.TrimRight(strings.TrimSpace(cfg.HuggingFaceAPIURL), "/"),
+		apiToken:       strings.TrimSpace(cfg.HuggingFaceAPIToken),
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
@@ -138,21 +138,26 @@ func (w *llmWorker) handleMessage(msg *nats.Msg) error {
 }
 
 func (w *llmWorker) callLLM(job llmJobCreatedEvent) (string, error) {
+	model := strings.TrimSpace(job.Payload.Model)
+	if model == "" {
+		return "", errors.New("llm job model is required")
+	}
+
 	systemPrompt := fmt.Sprintf("You are a market analysis assistant. Use region context '%s' and answer in language '%s'.", job.Payload.Region, job.Payload.TargetLanguage)
 
-	reqBody := llmAPIRequest{
-		Prompt:       job.Payload.TranslatedText,
-		SystemPrompt: systemPrompt,
-		Model:        job.Payload.Model,
-		Region:       job.Payload.Region,
-		Language:     job.Payload.TargetLanguage,
-		Metadata: map[string]any{
-			"report_id":          job.ReportID,
-			"llm_job_id":         job.JobID,
-			"translation_job_id": job.Payload.TranslationJobID,
-			"keyword":            job.Payload.Keyword,
-			"prompt_template":    job.Payload.PromptTemplate,
+	reqBody := huggingFaceChatCompletionRequest{
+		Messages: []huggingFaceChatMessage{
+			{
+				Role:    "system",
+				Content: systemPrompt,
+			},
+			{
+				Role:    "user",
+				Content: job.Payload.TranslatedText,
+			},
 		},
+		Model:  model,
+		Stream: false,
 	}
 
 	body, err := json.Marshal(reqBody)
@@ -165,8 +170,8 @@ func (w *llmWorker) callLLM(job llmJobCreatedEvent) (string, error) {
 		return "", fmt.Errorf("create llm request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-	if w.apiKey != "" {
-		req.Header.Set("Authorization", "Bearer "+w.apiKey)
+	if w.apiToken != "" {
+		req.Header.Set("Authorization", "Bearer "+w.apiToken)
 	}
 
 	resp, err := w.httpClient.Do(req)
@@ -181,30 +186,37 @@ func (w *llmWorker) callLLM(job llmJobCreatedEvent) (string, error) {
 	}
 
 	if resp.StatusCode >= http.StatusBadRequest {
-		return "", fmt.Errorf("llm api status %d: %s", resp.StatusCode, string(respBody))
+		return "", fmt.Errorf("huggingface api status %d: %s", resp.StatusCode, strings.TrimSpace(string(respBody)))
 	}
 
-	var out llmAPIResponse
-	if err := json.Unmarshal(respBody, &out); err != nil {
-		return "", fmt.Errorf("decode llm response: %w", err)
-	}
-
-	if strings.TrimSpace(out.Error) != "" {
-		return "", errors.New(out.Error)
-	}
-
-	responseText := strings.TrimSpace(out.Response)
-	if responseText == "" {
-		responseText = strings.TrimSpace(out.Output)
-	}
-	if responseText == "" {
-		responseText = strings.TrimSpace(out.Text)
-	}
-	if responseText == "" {
-		return "", errors.New("llm api returned empty response")
+	responseText, err := decodeHuggingFaceResponse(respBody)
+	if err != nil {
+		return "", fmt.Errorf("decode huggingface response: %w", err)
 	}
 
 	return responseText, nil
+}
+
+func decodeHuggingFaceResponse(body []byte) (string, error) {
+	var out huggingFaceChatCompletionResponse
+	if err := json.Unmarshal(body, &out); err != nil {
+		return "", fmt.Errorf("unmarshal response: %w", err)
+	}
+
+	if out.Error != nil {
+		return "", fmt.Errorf("huggingface error: %v", out.Error)
+	}
+
+	if len(out.Choices) == 0 {
+		return "", errors.New("no choices returned")
+	}
+
+	content := strings.TrimSpace(out.Choices[0].Message.Content)
+	if content == "" {
+		return "", errors.New("empty message content")
+	}
+
+	return content, nil
 }
 
 func (w *llmWorker) publishSuccess(job llmJobCreatedEvent, promptText, responseText string) error {

@@ -67,18 +67,22 @@ type llmFailedPayload struct {
 	ErrorMessage     string `json:"error_message"`
 }
 
-type llmAPIRequest struct {
-	Prompt       string         `json:"prompt"`
-	SystemPrompt string         `json:"system_prompt"`
-	Model        string         `json:"model"`
-	Region       string         `json:"region"`
-	Language     string         `json:"language"`
-	Metadata     map[string]any `json:"metadata,omitempty"`
+type huggingFaceChatCompletionRequest struct {
+	Messages []huggingFaceChatMessage `json:"messages"`
+	Model    string                   `json:"model"`
+	Stream   bool                     `json:"stream"`
 }
 
-type llmAPIResponse struct {
-	Response string `json:"response"`
-	Output   string `json:"output"`
-	Text     string `json:"text"`
-	Error    string `json:"error"`
+type huggingFaceChatMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+type huggingFaceChatCompletionResponse struct {
+	Choices []huggingFaceChoice `json:"choices"`
+	Error   any                 `json:"error"`
+}
+
+type huggingFaceChoice struct {
+	Message huggingFaceChatMessage `json:"message"`
 }

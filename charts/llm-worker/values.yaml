@@ -12,8 +12,9 @@ env:
   natsConsumeSubject: "planner.llm.job.created"
   natsResultSubject: "llm.response.completed"
   natsErrorSubject: "llm.response.failed"
-  llmApiUrl: "http://llm-service:8081/api/analyze"
-  llmApiKey: ""
+  huggingfaceApiUrl: "https://router.huggingface.co/v1/chat/completions"
+  huggingfaceTokenSecretName: "llm-worker-secrets"
+  huggingfaceTokenSecretKey: "huggingface-api-token"
 
 resources:
   requests:
