@@ -52,6 +52,13 @@ tasks:
           -n {{.NAMESPACE}}
           --wait --timeout 120s
 
+  deploy:report-query-api:
+    desc: Deploy report query api service
+    cmds:
+      - helm upgrade --install report-query-api ./charts/report-query-api
+          -n {{.NAMESPACE}}
+          --wait --timeout 120s
+
   deploy:translation-planner:
     desc: Deploy translation planner service
     cmds:
@@ -89,7 +96,7 @@ tasks:
 
   deploy:services:
     desc: Deploy all services
-    deps: [deploy:report-publisher, deploy:report-consumer, deploy:translation-planner, deploy:translation-worker, deploy:llm-planner, deploy:llm-worker, deploy:llm-response-consumer]
+    deps: [deploy:report-publisher, deploy:report-consumer, deploy:report-query-api, deploy:translation-planner, deploy:translation-worker, deploy:llm-planner, deploy:llm-worker, deploy:llm-response-consumer]
 
   deploy:infra:
     desc: Deploy all infrastructure
@@ -110,6 +117,11 @@ tasks:
     desc: Restart report consumer service
     cmds:
       - kubectl rollout restart deployment/report-consumer -n {{.NAMESPACE}}
+
+  restart:report-query-api:
+    desc: Restart report query api service
+    cmds:
+      - kubectl rollout restart deployment/report-query-api -n {{.NAMESPACE}}
 
   restart:translation-planner:
     desc: Restart translation planner service

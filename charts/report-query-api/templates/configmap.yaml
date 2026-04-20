@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "report-query-api.fullname" . }}
+  labels:
+    {{- include "report-query-api.labels" . | nindent 4 }}
+data:
+  PORT: {{ .Values.env.port | quote }}
+  POSTGRES_HOST: {{ .Values.env.postgresHost | quote }}
+  POSTGRES_PORT: {{ .Values.env.postgresPort | quote }}
+  POSTGRES_DB: {{ .Values.env.postgresDb | quote }}
+  POSTGRES_USER: {{ .Values.env.postgresUser | quote }}
+  POSTGRES_SSLMODE: {{ .Values.env.postgresSslMode | quote }}
