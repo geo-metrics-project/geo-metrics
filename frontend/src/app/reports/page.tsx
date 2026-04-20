@@ -15,7 +15,7 @@ import {
 
 // Interface for Report
 interface Report {
-  id: number;
+  id: string;
   brand_name: string;
   competitor_names: string[];
   models: string[];
@@ -37,7 +37,8 @@ export default function ReportsListPage() {
         const response = await fetch('/api/reports');
         if (response.ok) {
           const data = await response.json();
-          setReports(data.sort((a: Report, b: Report) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+          const reportsData: Report[] = Array.isArray(data?.reports) ? data.reports : [];
+          setReports(reportsData.sort((a: Report, b: Report) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
         }
       } catch (error) {
         console.error('Error fetching reports:', error);
@@ -93,7 +94,7 @@ export default function ReportsListPage() {
             </div>
 
             <a 
-              href="reports/create" 
+              href="/reports/create" 
               className="group flex items-center gap-2 px-6 py-3 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
             >
               <Zap className="w-4 h-4" />

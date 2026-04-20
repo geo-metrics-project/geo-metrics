@@ -17,7 +17,7 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarEle
 
 // --- INTERFACES ---
 interface ReportMetadata {
-  id: number;
+  id: string;
   brand_name: string;
   competitor_names: string[];
   models: string[];
@@ -75,7 +75,6 @@ interface FilterState {
 
 const GlobalDashboard: React.FC = () => {
   const params = useParams();
-  const router = useRouter();
   const reportId = params.reportId as string;
   // État des filtres
   const [filters, setFilters] = useState<FilterState>({
@@ -95,23 +94,6 @@ const GlobalDashboard: React.FC = () => {
   const [responses, setResponses] = useState<{ [key: string]: LlmResponse[] }>({});
   const [loadingResponses, setLoadingResponses] = useState<{ [key: string]: boolean }>({});
   const [showResponses, setShowResponses] = useState<{ [key: string]: boolean }>({});
-
-  const handleDelete = async () => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce rapport ?')) {
-      try {
-        const res = await fetch(`/api/reports/${reportId}`, { method: 'DELETE' });
-        if (res.ok) {
-          alert('Rapport supprimé avec succès');
-          router.push('/reports');
-        } else {
-          alert('Erreur lors de la suppression du rapport');
-        }
-      } catch (error) {
-        console.error('Erreur lors de la suppression', error);
-        alert('Erreur lors de la suppression');
-      }
-    }
-  };
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -248,12 +230,6 @@ const GlobalDashboard: React.FC = () => {
             <h1 className="text-3xl font-black text-slate-800 dark:text-slate-100 tracking-tighter capitalize">
               {report.brand_name} <span className="text-slate-400 dark:text-slate-500">Metrics</span>
             </h1>
-            <button
-              onClick={handleDelete}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-            >
-              Supprimer le Rapport
-            </button>
           </div>
         </header>
 

@@ -214,7 +214,7 @@ export default function CreateReportPage() {
         prompt_templates: form.prompt_templates
       };
 
-      const res = await fetch('/api/analyze', {
+      const res = await fetch('/api/reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -226,8 +226,14 @@ export default function CreateReportPage() {
           router.push(`/reports/${data.report_id}`);
         }, 2000);
       } else {
-        const text = await res.text();
-        setResult({ ok: false, message: text });
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const errorData = await res.json();
+          setResult({ ok: false, message: errorData?.error || JSON.stringify(errorData) });
+        } else {
+          const text = await res.text();
+          setResult({ ok: false, message: text });
+        }
       }
     } catch (err: any) {
       setResult({ ok: false, message: err?.message ?? String(err) });
