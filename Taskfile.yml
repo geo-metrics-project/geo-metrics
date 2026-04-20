@@ -94,9 +94,16 @@ tasks:
           -n {{.NAMESPACE}}
           --wait --timeout 120s
 
+  deploy:frontend:
+    desc: Deploy frontend service
+    cmds:
+      - helm upgrade --install frontend ./charts/frontend
+          -n {{.NAMESPACE}}
+          --wait --timeout 120s
+
   deploy:services:
     desc: Deploy all services
-    deps: [deploy:report-publisher, deploy:report-consumer, deploy:report-query-api, deploy:translation-planner, deploy:translation-worker, deploy:llm-planner, deploy:llm-worker, deploy:llm-response-consumer]
+    deps: [deploy:report-publisher, deploy:report-consumer, deploy:report-query-api, deploy:translation-planner, deploy:translation-worker, deploy:llm-planner, deploy:llm-worker, deploy:llm-response-consumer, deploy:frontend]
 
   deploy:infra:
     desc: Deploy all infrastructure
@@ -147,6 +154,12 @@ tasks:
     desc: Restart llm response consumer service
     cmds:
       - kubectl rollout restart deployment/llm-response-consumer -n {{.NAMESPACE}}
+
+  restart:frontend:
+    desc: Restart frontend service
+    cmds:
+      - kubectl rollout restart deployment/frontend -n {{.NAMESPACE}}
+      - kubectl rollout status deployment/frontend -n {{.NAMESPACE}} --timeout=180s
 
   status:
     desc: Show status of all deployments
