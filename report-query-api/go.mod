@@ -5,6 +5,7 @@ go 1.25.0
 require (
 	github.com/gin-gonic/gin v1.12.0
 	github.com/lib/pq v1.10.9
+	github.com/ory/keto-client-go/v26 v26.2.0
 	github.com/sethvargo/go-envconfig v1.3.0
 )
 

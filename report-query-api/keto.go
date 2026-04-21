@@ -2,23 +2,17 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
+
+	openapiclient "github.com/ory/keto-client-go/v26"
 )
 
 type ketoClient struct {
-	baseURL    string
-	namespace  string
-	httpClient *http.Client
-}
-
-type ketoCheckResponse struct {
-	Allowed bool `json:"allowed"`
+	client    *openapiclient.APIClient
+	namespace string
 }
 
 func newKetoClient(baseURL, namespace string) *ketoClient {
@@ -29,56 +23,107 @@ func newKetoClient(baseURL, namespace string) *ketoClient {
 	if strings.TrimSpace(namespace) == "" {
 		namespace = "Report"
 	}
+
+	cfg := openapiclient.NewConfiguration()
+	cfg.Servers = openapiclient.ServerConfigurations{openapiclient.ServerConfiguration{URL: baseURL, Description: "geo-metrics keto"}}
+	cfg.HTTPClient = &http.Client{Timeout: 5 * time.Second}
+
 	return &ketoClient{
-		baseURL:   baseURL,
+		client:    openapiclient.NewAPIClient(cfg),
 		namespace: namespace,
-		httpClient: &http.Client{
-			Timeout: 5 * time.Second,
-		},
 	}
-}
-
-func (k *ketoClient) checkRelation(ctx context.Context, reportID, relation, userID string) (bool, error) {
-	q := url.Values{}
-	q.Set("namespace", k.namespace)
-	q.Set("object", "report:"+reportID)
-	q.Set("relation", relation)
-	q.Set("subject_id", "user:"+userID)
-
-	endpoint := k.baseURL + "/relation-tuples/check/openapi?" + q.Encode()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
-	if err != nil {
-		return false, fmt.Errorf("create keto check request: %w", err)
-	}
-
-	resp, err := k.httpClient.Do(req)
-	if err != nil {
-		return false, fmt.Errorf("keto check request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 2048))
-		return false, fmt.Errorf("keto check returned %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
-	}
-
-	var payload ketoCheckResponse
-	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
-		return false, fmt.Errorf("decode keto check response: %w", err)
-	}
-
-	return payload.Allowed, nil
 }
 
 func (k *ketoClient) checkAnyRelation(ctx context.Context, reportID, userID string, relations []string) (bool, error) {
 	for _, relation := range relations {
-		allowed, err := k.checkRelation(ctx, reportID, relation, userID)
+		body := openapiclient.NewPostCheckPermissionBody()
+		body.SetNamespace(k.namespace)
+		body.SetObject("report:" + reportID)
+		body.SetRelation(relation)
+		body.SetSubjectId(userID)
+
+		resp, _, err := k.client.PermissionAPI.PostCheckPermission(ctx).PostCheckPermissionBody(*body).Execute()
 		if err != nil {
-			return false, err
+			return false, fmt.Errorf("keto check permission: %w", err)
 		}
-		if allowed {
+		if resp.GetAllowed() {
 			return true, nil
 		}
 	}
+
 	return false, nil
+}
+
+func (k *ketoClient) createOwnerRelation(ctx context.Context, reportID, userID string) error {
+	body := openapiclient.NewCreateRelationshipBody()
+	body.SetNamespace(k.namespace)
+	body.SetObject("report:" + reportID)
+	body.SetRelation("owner")
+	body.SetSubjectId(userID)
+
+	_, _, err := k.client.RelationshipAPI.CreateRelationship(ctx).CreateRelationshipBody(*body).Execute()
+	if err != nil {
+		return fmt.Errorf("keto create relationship: %w", err)
+	}
+	return nil
+}
+
+func (k *ketoClient) listAccessibleReportIDs(ctx context.Context, userID string) ([]string, error) {
+	if k == nil {
+		return nil, fmt.Errorf("keto client is not configured")
+	}
+
+	var (
+		pageToken string
+		ids       = make([]string, 0)
+	)
+
+	for {
+		request := k.client.RelationshipAPI.GetRelationships(ctx).
+			Namespace(k.namespace).
+			SubjectId(userID)
+
+		if pageToken != "" {
+			request = request.PageToken(pageToken)
+		}
+
+		resp, _, err := request.Execute()
+		if err != nil {
+			return nil, fmt.Errorf("keto list relationships: %w", err)
+		}
+
+		for _, relation := range resp.GetRelationTuples() {
+			if relation.GetNamespace() != k.namespace {
+				continue
+			}
+			if relation.GetRelation() != "owner" && relation.GetRelation() != "viewer" && relation.GetRelation() != "editor" {
+				continue
+			}
+			object := relation.GetObject()
+			if !strings.HasPrefix(object, "report:") {
+				continue
+			}
+			ids = append(ids, strings.TrimPrefix(object, "report:"))
+		}
+
+		if next := strings.TrimSpace(resp.GetNextPageToken()); next != "" {
+			pageToken = next
+			continue
+		}
+
+		return uniqueStrings(ids), nil
+	}
+}
+
+func uniqueStrings(values []string) []string {
+	seen := make(map[string]struct{}, len(values))
+	result := make([]string, 0, len(values))
+	for _, value := range values {
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		result = append(result, value)
+	}
+	return result
 }

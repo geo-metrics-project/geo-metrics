@@ -50,8 +50,20 @@ func (s *store) Close() {
 	}
 }
 
-func (s *store) listReportsByUser(ctx context.Context, userID string, limit, offset int) ([]report, error) {
-	rows, err := s.db.QueryContext(ctx, `
+func (s *store) listReportsByIDs(ctx context.Context, reportIDs []string, limit, offset int) ([]report, error) {
+	if len(reportIDs) == 0 {
+		return []report{}, nil
+	}
+
+	placeholders := make([]string, len(reportIDs))
+	args := make([]any, 0, len(reportIDs)+2)
+	for i, reportID := range reportIDs {
+		placeholders[i] = fmt.Sprintf("$%d", i+1)
+		args = append(args, reportID)
+	}
+	args = append(args, limit, offset)
+
+	query := `
 		SELECT
 			id,
 			brand_name,
@@ -67,68 +79,13 @@ func (s *store) listReportsByUser(ctx context.Context, userID string, limit, off
 			created_at,
 			updated_at
 		FROM reports
-		WHERE user_id = $1
+		WHERE id IN (` + strings.Join(placeholders, ",") + `)
 		ORDER BY created_at DESC
-		LIMIT $2 OFFSET $3
-	`, userID, limit, offset)
+		LIMIT $` + fmt.Sprint(len(args)-1) + ` OFFSET $` + fmt.Sprint(len(args))
+
+	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("query reports by user: %w", err)
-	}
-	defer rows.Close()
-
-	result := make([]report, 0)
-	for rows.Next() {
-		var rep report
-		var userIDValue sql.NullString
-		if err := rows.Scan(
-			&rep.ID,
-			&rep.BrandName,
-			pq.Array(&rep.CompetitorNames),
-			pq.Array(&rep.Models),
-			pq.Array(&rep.Keywords),
-			pq.Array(&rep.Regions),
-			pq.Array(&rep.Languages),
-			pq.Array(&rep.PromptTemplates),
-			&rep.Status,
-			&userIDValue,
-			&rep.OccurredAt,
-			&rep.CreatedAt,
-			&rep.UpdatedAt,
-		); err != nil {
-			return nil, fmt.Errorf("scan report by user: %w", err)
-		}
-		if userIDValue.Valid {
-			value := userIDValue.String
-			rep.UserID = &value
-		}
-		result = append(result, rep)
-	}
-
-	return result, rows.Err()
-}
-
-func (s *store) listReports(ctx context.Context, limit, offset int) ([]report, error) {
-	rows, err := s.db.QueryContext(ctx, `
-		SELECT
-			id,
-			brand_name,
-			competitor_names,
-			models,
-			keywords,
-			regions,
-			languages,
-			prompt_templates,
-			status,
-			user_id,
-			occurred_at,
-			created_at,
-			updated_at
-		FROM reports
-		ORDER BY created_at DESC
-		LIMIT $1 OFFSET $2
-	`, limit, offset)
-	if err != nil {
-		return nil, fmt.Errorf("query reports: %w", err)
+		return nil, fmt.Errorf("query reports by ids: %w", err)
 	}
 	defer rows.Close()
 
@@ -151,7 +108,7 @@ func (s *store) listReports(ctx context.Context, limit, offset int) ([]report, e
 			&rep.CreatedAt,
 			&rep.UpdatedAt,
 		); err != nil {
-			return nil, fmt.Errorf("scan report: %w", err)
+			return nil, fmt.Errorf("scan report by ids: %w", err)
 		}
 		if userID.Valid {
 			value := userID.String

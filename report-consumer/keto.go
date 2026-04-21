@@ -1,27 +1,18 @@
 package main
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
+
+	openapiclient "github.com/ory/keto-client-go/v26"
 )
 
 type ketoTupleWriter struct {
-	baseURL    string
-	namespace  string
-	httpClient *http.Client
-}
-
-type ketoTuplePayload struct {
-	Namespace string `json:"namespace"`
-	Object    string `json:"object"`
-	Relation  string `json:"relation"`
-	SubjectID string `json:"subject_id"`
+	client    *openapiclient.APIClient
+	namespace string
 }
 
 func newKetoTupleWriter(baseURL, namespace string) *ketoTupleWriter {
@@ -32,12 +23,14 @@ func newKetoTupleWriter(baseURL, namespace string) *ketoTupleWriter {
 	if strings.TrimSpace(namespace) == "" {
 		namespace = "Report"
 	}
+
+	cfg := openapiclient.NewConfiguration()
+	cfg.Servers = openapiclient.ServerConfigurations{openapiclient.ServerConfiguration{URL: baseURL, Description: "geo-metrics keto"}}
+	cfg.HTTPClient = &http.Client{Timeout: 5 * time.Second}
+
 	return &ketoTupleWriter{
-		baseURL:   baseURL,
+		client:    openapiclient.NewAPIClient(cfg),
 		namespace: namespace,
-		httpClient: &http.Client{
-			Timeout: 5 * time.Second,
-		},
 	}
 }
 
@@ -46,34 +39,15 @@ func (k *ketoTupleWriter) upsertReportOwner(ctx context.Context, reportID, userI
 		return nil
 	}
 
-	payload := ketoTuplePayload{
-		Namespace: k.namespace,
-		Object:    "report:" + reportID,
-		Relation:  "owner",
-		SubjectID: "user:" + userID,
-	}
+	body := openapiclient.NewCreateRelationshipBody()
+	body.SetNamespace(k.namespace)
+	body.SetObject("report:" + reportID)
+	body.SetRelation("owner")
+	body.SetSubjectId(userID)
 
-	body, err := json.Marshal(payload)
+	_, _, err := k.client.RelationshipAPI.CreateRelationship(ctx).CreateRelationshipBody(*body).Execute()
 	if err != nil {
-		return fmt.Errorf("marshal keto tuple payload: %w", err)
-	}
-
-	endpoint := k.baseURL + "/relation-tuples"
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, endpoint, bytes.NewReader(body))
-	if err != nil {
-		return fmt.Errorf("create keto tuple request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := k.httpClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("keto tuple request failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusNoContent {
-		raw, _ := io.ReadAll(io.LimitReader(resp.Body, 2048))
-		return fmt.Errorf("keto tuple returned %d: %s", resp.StatusCode, strings.TrimSpace(string(raw)))
+		return fmt.Errorf("keto create owner relationship: %w", err)
 	}
 
 	return nil

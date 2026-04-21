@@ -12,7 +12,7 @@ func healthHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "report-query-api"})
 }
 
-func listReportsHandler(store *store) gin.HandlerFunc {
+func listReportsHandler(store *store, authorizer *reportAuthorizer) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, ok := requestUserID(c)
 		if !ok {
@@ -20,7 +20,18 @@ func listReportsHandler(store *store) gin.HandlerFunc {
 		}
 
 		limit, offset := parsePagination(c)
-		reports, err := store.listReportsByUser(c.Request.Context(), userID, limit, offset)
+		if authorizer == nil || authorizer.keto == nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "keto client is not configured"})
+			return
+		}
+
+		reportIDs, err := authorizer.keto.listAccessibleReportIDs(c.Request.Context(), userID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		reports, err := store.listReportsByIDs(c.Request.Context(), reportIDs, limit, offset)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
