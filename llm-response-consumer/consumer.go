@@ -7,10 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 	"github.com/nats-io/nats.go"
 )
 
@@ -167,6 +168,17 @@ func (c *llmResponseConsumer) persistCompleted(ctx context.Context, raw []byte) 
 		return fmt.Errorf("parse occurred_at: %w", err)
 	}
 
+	brandName, competitorNames, err := c.loadReportEntities(ctx, evt.ReportID)
+	if err != nil {
+		return fmt.Errorf("load report entities: %w", err)
+	}
+
+	kpi := calculateResponseKPI(evt.Payload.Response, brandName, competitorNames)
+	kpiJSON, err := json.Marshal(kpi)
+	if err != nil {
+		return fmt.Errorf("marshal kpis: %w", err)
+	}
+
 	_, err = c.db.ExecContext(ctx, `
 		INSERT INTO llm_responses (
 			report_id,
@@ -178,18 +190,20 @@ func (c *llmResponseConsumer) persistCompleted(ctx context.Context, raw []byte) 
 			model,
 			prompt_text,
 			response,
+			kpis,
 			status,
 			error_message,
 			occurred_at,
 			completed_at,
 			retry_count
 		)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'completed',NULL,$10,CURRENT_TIMESTAMP,0)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'completed',NULL,$11,CURRENT_TIMESTAMP,0)
 		ON CONFLICT (report_id, prompt_template, region, language_code, keyword, model)
 		DO UPDATE SET
 			source_event_id = EXCLUDED.source_event_id,
 			prompt_text = EXCLUDED.prompt_text,
 			response = EXCLUDED.response,
+			kpis = EXCLUDED.kpis,
 			status = 'completed',
 			error_message = NULL,
 			retry_count = 0,
@@ -205,6 +219,7 @@ func (c *llmResponseConsumer) persistCompleted(ctx context.Context, raw []byte) 
 		evt.Payload.Model,
 		evt.Payload.PromptText,
 		evt.Payload.Response,
+		kpiJSON,
 		occurredAt,
 	)
 	if err != nil {
@@ -221,4 +236,60 @@ func (c *llmResponseConsumer) Close() {
 	if c.db != nil {
 		_ = c.db.Close()
 	}
+}
+
+func (c *llmResponseConsumer) loadReportEntities(ctx context.Context, reportID string) (string, []string, error) {
+	row := c.db.QueryRowContext(ctx, `
+		SELECT brand_name, competitor_names
+		FROM reports
+		WHERE id = $1
+	`, reportID)
+
+	var brandName string
+	competitorNames := []string{}
+	if err := row.Scan(&brandName, pq.Array(&competitorNames)); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", nil, fmt.Errorf("report not found: %s", reportID)
+		}
+		return "", nil, err
+	}
+
+	return brandName, competitorNames, nil
+}
+
+func calculateResponseKPI(response, brandName string, competitorNames []string) responseKPI {
+	responseText := strings.ToLower(response)
+	brandMentioned := containsEntity(responseText, brandName)
+
+	competitorMentions := make(map[string]bool)
+	for _, competitor := range competitorNames {
+		if containsEntity(responseText, competitor) {
+			competitorMentions[competitor] = true
+		}
+	}
+
+	return responseKPI{
+		BrandMentioned:        brandMentioned,
+		BrandCitationWithLink: brandMentioned && containsCitationLink(responseText),
+		CompetitorMentions:    competitorMentions,
+	}
+}
+
+func containsEntity(text, entity string) bool {
+	entity = strings.TrimSpace(strings.ToLower(entity))
+	if entity == "" {
+		return false
+	}
+
+	if strings.Contains(entity, " ") {
+		return strings.Contains(text, entity)
+	}
+
+	re := regexp.MustCompile(`\\b` + regexp.QuoteMeta(entity) + `\\b`)
+	return re.FindStringIndex(text) != nil
+}
+
+func containsCitationLink(text string) bool {
+	re := regexp.MustCompile(`https?://\\S+|www\\.\\S+`)
+	return re.FindStringIndex(text) != nil
 }

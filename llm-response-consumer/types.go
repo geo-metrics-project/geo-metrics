@@ -43,3 +43,9 @@ type llmFailedPayload struct {
 	Region           string `json:"region"`
 	ErrorMessage     string `json:"error_message"`
 }
+
+type responseKPI struct {
+	BrandMentioned        bool            `json:"brand_mentioned"`
+	BrandCitationWithLink bool            `json:"brand_citation_with_link"`
+	CompetitorMentions    map[string]bool `json:"competitor_mentions"`
+}
