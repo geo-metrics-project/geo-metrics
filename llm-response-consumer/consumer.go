@@ -276,20 +276,16 @@ func calculateResponseKPI(response, brandName string, competitorNames []string) 
 }
 
 func containsEntity(text, entity string) bool {
-	entity = strings.TrimSpace(strings.ToLower(entity))
+	entity = strings.TrimSpace(entity)
 	if entity == "" {
 		return false
 	}
 
-	if strings.Contains(entity, " ") {
-		return strings.Contains(text, entity)
-	}
-
-	re := regexp.MustCompile(`\\b` + regexp.QuoteMeta(entity) + `\\b`)
-	return re.FindStringIndex(text) != nil
+	re := regexp.MustCompile(`(?i)(^|[^\p{L}\p{N}])` + regexp.QuoteMeta(entity) + `($|[^\p{L}\p{N}])`)
+	return re.MatchString(text)
 }
 
 func containsCitationLink(text string) bool {
-	re := regexp.MustCompile(`https?://\\S+|www\\.\\S+`)
+	re := regexp.MustCompile(`https?://\S+|www\.\S+`)
 	return re.FindStringIndex(text) != nil
 }
