@@ -11,4 +11,5 @@ FROM gcr.io/distroless/static-debian12:nonroot
 WORKDIR /app
 COPY --from=builder /bin/report-publisher /app/report-publisher
 
+EXPOSE 8080
 ENTRYPOINT ["/app/report-publisher"]
