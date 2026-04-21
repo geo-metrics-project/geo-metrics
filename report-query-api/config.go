@@ -8,4 +8,6 @@ type config struct {
 	PostgresUser     string `env:"POSTGRES_USER,required"`
 	PostgresPassword string `env:"POSTGRES_PASSWORD,required"`
 	PostgresSSLMode  string `env:"POSTGRES_SSLMODE,required"`
+	KetoReadURL      string `env:"KETO_READ_URL"`
+	KetoNamespace    string `env:"KETO_NAMESPACE,default=Report"`
 }

@@ -27,10 +27,13 @@ func main() {
 	}
 	defer store.Close()
 
+	ketoClient := newKetoClient(cfg.KetoReadURL, cfg.KetoNamespace)
+	authorizer := newReportAuthorizer(store, ketoClient)
+
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
-	registerRoutes(r, store)
+	registerRoutes(r, store, authorizer)
 
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,

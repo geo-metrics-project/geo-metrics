@@ -5,11 +5,12 @@ type config struct {
 	NATSStream         string `env:"NATS_STREAM,required"`
 	NATSDurable        string `env:"NATS_CONSUMER,required"`
 	NATSConsumeSubject string `env:"NATS_CONSUME_SUBJECT,required"`
-	NATSPlannerSubject string `env:"NATS_PLANNER_SUBJECT,required"`
 	PostgresHost       string `env:"POSTGRES_HOST,required"`
 	PostgresPort       string `env:"POSTGRES_PORT,required"`
 	PostgresDB         string `env:"POSTGRES_DB,required"`
 	PostgresUser       string `env:"POSTGRES_USER,required"`
 	PostgresPassword   string `env:"POSTGRES_PASSWORD,required"`
 	PostgresSSLMode    string `env:"POSTGRES_SSLMODE,required"`
+	KetoWriteURL       string `env:"KETO_WRITE_URL"`
+	KetoNamespace      string `env:"KETO_NAMESPACE,default=Report"`
 }

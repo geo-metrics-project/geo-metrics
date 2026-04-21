@@ -14,8 +14,13 @@ func healthHandler(c *gin.Context) {
 
 func listReportsHandler(store *store) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		userID, ok := requestUserID(c)
+		if !ok {
+			return
+		}
+
 		limit, offset := parsePagination(c)
-		reports, err := store.listReports(c.Request.Context(), limit, offset)
+		reports, err := store.listReportsByUser(c.Request.Context(), userID, limit, offset)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -24,11 +29,26 @@ func listReportsHandler(store *store) gin.HandlerFunc {
 	}
 }
 
-func getReportHandler(store *store) gin.HandlerFunc {
+func getReportHandler(store *store, authorizer *reportAuthorizer) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		userID, ok := requestUserID(c)
+		if !ok {
+			return
+		}
+
 		reportID := strings.TrimSpace(c.Param("reportId"))
 		if reportID == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "reportId is required"})
+			return
+		}
+
+		allowed, err := authorizer.canReadReport(c.Request.Context(), userID, reportID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if !allowed {
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 			return
 		}
 
@@ -46,11 +66,26 @@ func getReportHandler(store *store) gin.HandlerFunc {
 	}
 }
 
-func listLLMResponsesHandler(store *store) gin.HandlerFunc {
+func listLLMResponsesHandler(store *store, authorizer *reportAuthorizer) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		userID, ok := requestUserID(c)
+		if !ok {
+			return
+		}
+
 		reportID := strings.TrimSpace(c.Param("reportId"))
 		if reportID == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "reportId is required"})
+			return
+		}
+
+		allowed, err := authorizer.canReadReport(c.Request.Context(), userID, reportID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if !allowed {
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 			return
 		}
 
@@ -66,11 +101,26 @@ func listLLMResponsesHandler(store *store) gin.HandlerFunc {
 	}
 }
 
-func getKPIsHandler(store *store) gin.HandlerFunc {
+func getKPIsHandler(store *store, authorizer *reportAuthorizer) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		userID, ok := requestUserID(c)
+		if !ok {
+			return
+		}
+
 		reportID := strings.TrimSpace(c.Param("reportId"))
 		if reportID == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "reportId is required"})
+			return
+		}
+
+		allowed, err := authorizer.canReadReport(c.Request.Context(), userID, reportID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if !allowed {
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 			return
 		}
 
@@ -113,4 +163,13 @@ func parseFilters(c *gin.Context) map[string]string {
 		}
 	}
 	return filters
+}
+
+func requestUserID(c *gin.Context) (string, bool) {
+	userID := strings.TrimSpace(c.GetHeader("x-user-id"))
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "missing x-user-id header"})
+		return "", false
+	}
+	return userID, true
 }

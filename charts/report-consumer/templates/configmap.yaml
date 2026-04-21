@@ -14,3 +14,5 @@ data:
   POSTGRES_DB: {{ .Values.env.postgresDb | quote }}
   POSTGRES_USER: {{ .Values.env.postgresUser | quote }}
   POSTGRES_SSLMODE: {{ .Values.env.postgresSslMode | quote }}
+  KETO_WRITE_URL: {{ .Values.env.ketoWriteUrl | quote }}
+  KETO_NAMESPACE: {{ .Values.env.ketoNamespace | quote }}

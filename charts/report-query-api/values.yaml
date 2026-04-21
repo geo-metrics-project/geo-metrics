@@ -17,6 +17,8 @@ env:
   postgresDb: "geometrics"
   postgresUser: "geometrics"
   postgresSslMode: "disable"
+  ketoReadUrl: "http://keto-read.geo-ory.svc.cluster.local:4466"
+  ketoNamespace: "Report"
   postgresAuthSecretName: "postgres-auth"
   postgresAuthPasswordKey: "password"
 

@@ -18,6 +18,7 @@ type reportConsumer struct {
 	conn           *nats.Conn
 	js             nats.JetStreamContext
 	db             *sql.DB
+	keto           *ketoTupleWriter
 	stream         string
 	durable        string
 	consumeSubject string
@@ -72,10 +73,13 @@ func newReportConsumer(cfg config) (*reportConsumer, error) {
 		return nil, fmt.Errorf("jetstream context: %w", err)
 	}
 
+	ketoWriter := newKetoTupleWriter(cfg.KetoWriteURL, cfg.KetoNamespace)
+
 	return &reportConsumer{
 		conn:           conn,
 		js:             js,
 		db:             db,
+		keto:           ketoWriter,
 		stream:         cfg.NATSStream,
 		durable:        cfg.NATSDurable,
 		consumeSubject: cfg.NATSConsumeSubject,
@@ -201,6 +205,13 @@ func (c *reportConsumer) handleMessage(ctx context.Context, msg *nats.Msg) error
 	if err := tx.Commit(); err != nil {
 		msg.Nak()
 		return fmt.Errorf("commit tx: %w", err)
+	}
+
+	if c.keto != nil {
+		if err := c.keto.upsertReportOwner(ctx, evt.ReportID, evt.UserID); err != nil {
+			msg.Nak()
+			return fmt.Errorf("sync report ownership to keto: %w", err)
+		}
 	}
 
 	msg.Ack()
